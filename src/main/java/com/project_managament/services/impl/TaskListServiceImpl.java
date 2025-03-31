@@ -1,5 +1,6 @@
 package com.project_managament.services.impl;
 
+import com.project_managament.models.Task;
 import com.project_managament.models.TaskList;
 import com.project_managament.repositories.TaskListRepository;
 import com.project_managament.services.TaskListService;
@@ -49,5 +50,12 @@ public class TaskListServiceImpl implements TaskListService {
     @Override
     public List<TaskList> getAllTaskList() {
         return taskListRepository.getAll();
+    }
+
+    @Override
+    public List<TaskList> getTasksByBoardId(int BoardId) {
+        if (BoardId <= 0)
+            throw new IllegalArgumentException("Invalid task BoardId");
+        return taskListRepository.getTasksByBoardId(BoardId);
     }
 }

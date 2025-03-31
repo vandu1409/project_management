@@ -1,5 +1,6 @@
 package com.project_managament.repositories.impl;
 
+import com.project_managament.models.Task;
 import com.project_managament.models.TaskList;
 import com.project_managament.repositories.TaskListRepository;
 import com.project_managament.utils.DBConnection;
@@ -14,11 +15,15 @@ public class TaskListRepositoryImpl implements TaskListRepository {
     private static final String DELETE_SQL = "DELETE FROM task_lists WHERE id=?";
     private static final String SELECT_BY_ID_SQL = "SELECT * FROM task_lists WHERE id=?";
     private static final String SELECT_ALL_SQL = "SELECT * FROM task_lists";
+    /**
+     * Task By Board Id
+     */
+    private  static final String TASK_BY_BOARD_ID_SQL = "SELECT * FROM task_lists WHERE board_id=?";
 
     @Override
     public int insert(TaskList taskList) {
         try (Connection conn = DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(INSERT_SQL)) {
+             PreparedStatement ps = conn.prepareStatement(INSERT_SQL, Statement.RETURN_GENERATED_KEYS)) {
             ps.setString(1, taskList.getTitle());
             ps.setTimestamp(2, Timestamp.valueOf(taskList.getCreatedAt()));
             ps.setTimestamp(3, taskList.getDeletedAt() != null ? Timestamp.valueOf(taskList.getDeletedAt()) : null);
@@ -106,5 +111,25 @@ public class TaskListRepositoryImpl implements TaskListRepository {
         );
 
     }
+    @Override
+    public List<TaskList> getTasksByBoardId(int boardId) {
+        List<TaskList> tasks = new ArrayList<>();
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(TASK_BY_BOARD_ID_SQL)) {
 
+            System.out.println(boardId);
+            ps.setInt(1, boardId);
+            ResultSet rs = ps.executeQuery();
+
+            while (rs.next()) {
+                TaskList task = mapToTaskList(rs);
+                tasks.add(task);
+            }
+
+        } catch (SQLException e) {
+            throw new RuntimeException("Error fetching task by ID", e);
+        }
+
+        return tasks;
+    }
 }

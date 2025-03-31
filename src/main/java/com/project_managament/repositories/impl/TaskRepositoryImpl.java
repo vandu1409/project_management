@@ -17,6 +17,8 @@ public class TaskRepositoryImpl implements TaskRepository {
     private static final String SELECT_ALL_SQL = "SELECT * FROM tasks";
     private static final String MOVE_SQL = "UPDATE tasks SET task_list_id=?, position=?, updated_at=? WHERE id=?";
 
+
+
     @Override
     public int insert(Task task) {
         try (Connection conn = DBConnection.getConnection();
@@ -129,6 +131,7 @@ public class TaskRepositoryImpl implements TaskRepository {
                 rs.getLong("task_list_id")
         );
     }
+
 
 
 }

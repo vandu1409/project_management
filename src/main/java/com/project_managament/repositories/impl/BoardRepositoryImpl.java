@@ -19,6 +19,7 @@ public class BoardRepositoryImpl implements BoardRepository {
     private static final String SELECT_BY_USER = "SELECT b.* FROM boards b " +
             "JOIN board_members bm ON b.id = bm.board_id " +
             "WHERE bm.user_id = ?";
+
     @Override
     public int insert(Board board) {
         try (Connection conn = DBConnection.getConnection();

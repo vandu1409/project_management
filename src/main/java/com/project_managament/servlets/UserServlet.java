@@ -6,10 +6,13 @@ import com.project_managament.services.UserService;
 import com.project_managament.services.impl.UserServiceImpl;
 import com.project_managament.utils.AuthUtil;
 import com.project_managament.utils.JsonUtils;
+import jakarta.servlet.RequestDispatcher;
+import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
@@ -68,22 +71,40 @@ public class UserServlet extends HttpServlet {
         }
     }
 
-    private void handleLogin(HttpServletRequest req, HttpServletResponse res) throws IOException {
-        Map<String, String> jsonData = JsonUtils.parseJsonRequest(req);
-        String email = jsonData.get("email");
-        String password = jsonData.get("password");
+    private void handleLogin(HttpServletRequest req, HttpServletResponse res) throws IOException, ServletException {
+        if (AuthUtil.isAuthenticated(req)) {
+            res.sendRedirect(req.getContextPath() + "/dashboard");
+            return;
+        }
+
+        String email = req.getParameter("email");
+        String password = req.getParameter("password");
+
+        if (email == null || password == null) {
+            // Truy cập trang login lần đầu (chưa submit form)
+            RequestDispatcher dispatcher = req.getRequestDispatcher("/views/index.jsp");
+            dispatcher.forward(req, res);
+            return;
+        }
 
         Optional<User> user = userService.loginUser(email, password);
         if (user.isPresent()) {
             AuthUtil.setLoggedInUser(req, user.get());
-            JsonUtils.sendJsonResponse(res, HttpServletResponse.SC_OK, "Login successful!");
+            res.sendRedirect(req.getContextPath() + "/dashboard");
         } else {
-            JsonUtils.sendJsonResponse(res, HttpServletResponse.SC_UNAUTHORIZED, "Invalid credentials");
+            res.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            req.setAttribute("errorMessage", "Có lỗi khi đăng nhập, vui lòng thử lại!");
+            RequestDispatcher dispatcher = req.getRequestDispatcher("/views/index.jsp");
+            dispatcher.forward(req, res);
         }
     }
 
     private void handleLogout(HttpServletRequest req, HttpServletResponse res) throws IOException {
+        HttpSession session = req.getSession(false);
+        if (session != null) {
+            session.invalidate();
+        }
         AuthUtil.logout(req);
-        JsonUtils.sendJsonResponse(res, HttpServletResponse.SC_OK, "Logged out successfully!");
+        res.sendRedirect(req.getContextPath() + "/login");
     }
 }

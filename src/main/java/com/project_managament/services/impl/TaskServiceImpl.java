@@ -34,7 +34,8 @@ public class TaskServiceImpl implements TaskService {
 
     @Override
     public Optional<Task> getTaskById(int id) {
-        if (id <= 0) throw new IllegalArgumentException("Invalid task ID");
+        if (id <= 0)
+            throw new IllegalArgumentException("Invalid task ID");
         return Optional.ofNullable(taskRepository.getById(id));
     }
 
@@ -42,6 +43,8 @@ public class TaskServiceImpl implements TaskService {
     public List<Task> getAllTasks() {
         return taskRepository.getAll();
     }
+
+
 
     private void validateTask(Task task) {
         if (task.getTitle() == null || task.getTitle().trim().isEmpty()) {

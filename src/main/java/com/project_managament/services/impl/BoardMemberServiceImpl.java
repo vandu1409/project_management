@@ -25,7 +25,7 @@ public class BoardMemberServiceImpl implements BoardMemberService {
 
     private final TokenService tokenService = new TokenServiceImpl(new TokenRepositoryImpl());
 
-    private final BoardService boardService = new BoardServiceImpl(new BoardRepositoryImpl());
+//    private final BoardService boardService = new BoardServiceImpl(new BoardRepositoryImpl());
 
     public BoardMemberServiceImpl(BoardMemberRepository boardMemberRepository) {
         this.boardMemberRepository = boardMemberRepository;
@@ -33,28 +33,28 @@ public class BoardMemberServiceImpl implements BoardMemberService {
 
     @Override
     public boolean inviteMember(String email, int boardId) {
-
-        Board board = boardService.getBoard(boardId).orElseThrow(
-                () -> new IllegalArgumentException("Invalid id!")
-        );
-
-        User user = userService.getUserByEmail(email).orElseThrow(
-                () -> new IllegalArgumentException("User with this email is not registered!")
-        );
-
-        BoardMember boardMember = boardMemberRepository.findByBoardAndUser(board.getId(), user.getId())
-                .orElseThrow(() -> new IllegalArgumentException("User is already a member of this board!"));
-
-        String token = tokenService.generateActivationToken(user.getId(), TokenType.ACCOUNT_INVITATION);
-        String inviteLink = "https://your-app.com/board-member/" + board.getInviteCode() + "?token=" + token;
-
-        String htmlContent = EmailTemplateUtil.loadTemplate(
-                "board-invitation-email.html"
-                , "{{userName}}", user.getEmail()
-                , "{{boardTitle}}", board.getTitle()
-                , "{{inviteLink}}", inviteLink
-        );
-        emailService.sendEmail(user.getEmail(), "Thư mời tham gia dự án", htmlContent);
+//
+//        Board board = boardService.getBoard(boardId).orElseThrow(
+//                () -> new IllegalArgumentException("Invalid id!")
+//        );
+//
+//        User user = userService.getUserByEmail(email).orElseThrow(
+//                () -> new IllegalArgumentException("User with this email is not registered!")
+//        );
+//
+//        BoardMember boardMember = boardMemberRepository.findByBoardAndUser(board.getId(), user.getId())
+//                .orElseThrow(() -> new IllegalArgumentException("User is already a member of this board!"));
+//
+//        String token = tokenService.generateActivationToken(user.getId(), TokenType.ACCOUNT_INVITATION);
+//        String inviteLink = "https://your-app.com/board-member/" + board.getInviteCode() + "?token=" + token;
+//
+//        String htmlContent = EmailTemplateUtil.loadTemplate(
+//                "board-invitation-email.html"
+//                , "{{userName}}", user.getEmail()
+//                , "{{boardTitle}}", board.getTitle()
+//                , "{{inviteLink}}", inviteLink
+//        );
+//        emailService.sendEmail(user.getEmail(), "Thư mời tham gia dự án", htmlContent);
 
         return true;
     }
@@ -89,27 +89,27 @@ public class BoardMemberServiceImpl implements BoardMemberService {
 
     @Override
     public boolean processInvitation(String inviteCode, String token) {
-
-        User user = userService.getUserByValidToken(token, TokenType.ACCOUNT_INVITATION)
-                .orElseThrow(
-                        () -> new IllegalArgumentException("Invalid or expired invitation token!")
-                );
-
-        Board board = boardService.getByInviteCode(inviteCode)
-                .orElseThrow(
-                        () -> new IllegalArgumentException("Invalid invite code!")
-                );
-
-        BoardMember newMember = BoardMember.builder()
-                .boardId(board.getId())
-                .userId(user.getId())
-                .role("MEMBER")
-                .status("PENDING")
-                .joinedAt(LocalDateTime.now())
-                .build();
-
-        addBoardMember(newMember);
-        tokenService.deleteToken(token);
+//
+//        User user = userService.getUserByValidToken(token, TokenType.ACCOUNT_INVITATION)
+//                .orElseThrow(
+//                        () -> new IllegalArgumentException("Invalid or expired invitation token!")
+//                );
+//
+//        Board board = boardService.getByInviteCode(inviteCode)
+//                .orElseThrow(
+//                        () -> new IllegalArgumentException("Invalid invite code!")
+//                );
+//
+//        BoardMember newMember = BoardMember.builder()
+//                .boardId(board.getId())
+//                .userId(user.getId())
+//                .role("MEMBER")
+//                .status("PENDING")
+//                .joinedAt(LocalDateTime.now())
+//                .build();
+//
+//        addBoardMember(newMember);
+//        tokenService.deleteToken(token);
 
         return true;
     }

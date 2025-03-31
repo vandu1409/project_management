@@ -40,8 +40,8 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public Optional<User> loginUser(String email, String password) {
-        ValidationUtil.validateEmail(email);
-        ValidationUtil.validatePassword(password);
+   /*     ValidationUtil.validateEmail(email);
+        ValidationUtil.validatePassword(password);*/
         return Optional.ofNullable(userRepository.findByEmail(email))
                 .filter(user -> PasswordUtil.checkPassword(password, user.getPassword()));
     }

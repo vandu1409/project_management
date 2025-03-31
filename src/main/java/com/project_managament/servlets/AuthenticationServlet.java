@@ -23,7 +23,7 @@ public class AuthenticationServlet extends HttpServlet {
         if(uri.contains("verify-account")){
             String token = req.getParameter("token");
             userService.verifyAccount(token);
-            req.getRequestDispatcher("/views/home.jsp").forward(req, resp);
+            req.getRequestDispatcher("/views/indexindex.jsp").forward(req, resp);
         }
     }
 }
