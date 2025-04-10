@@ -1,3 +1,6 @@
+body{
+    overflow-y: hidden !important;
+}
 
 .page-loading {
     position: fixed;
@@ -69,10 +72,12 @@
 }
 
 .delete-board{
+
     transform: translateX(25px);
     transition: all 0.3s ease;
 }
 .delete-board:hover{
+    background: rgba(0, 0, 0, 0.56);
 }
 .group-button{
     color: white;
@@ -113,6 +118,17 @@
     opacity: 0;
     pointer-events: none;
 }
+.btn-option{
+    padding: 4px;
+    width: 30px;
+    height: 30px;
+    background: transparent;
+    border-radius: 8px;
+    cursor: pointer;
+}
+.btn-option:hover{
+    background: rgba(192, 192, 192, 0.73);
+}
 
 .login-form {
     transform: translateX(0%);
@@ -126,11 +142,14 @@
     opacity: 1;
     pointer-events: all;
 }
-
 .login-form.active {
     transform: translateX(0%);
 }
 
 .register-form.active {
     transform: translateX(0%);
+}
+
+.dropdown-toggle::after {
+    display: none !important;
 }

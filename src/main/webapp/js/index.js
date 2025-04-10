@@ -1,4 +1,3 @@
-
 /*
 * Method
 * Toggle Show Hide Password ( Text <=> Password ) 
@@ -54,47 +53,111 @@ const swalSuccess = () => {
 
     });
 };
+
+/*
+* Ajax Function
+* */
+const sendAjaxRequest = ({url, method = 'POST', data = {}}) => {
+    $('body').addClass('page-loading');
+    return $.ajax({
+        url,
+        method,
+        data
+    }).always(() => {
+        $('body').removeClass('page-loading');
+    });
+};
+
+/*
+* Ajax
+* Get Board
+* */
+
+const getBoards = async (boardId = null) => {
+
+    const dataUrl = $('#board-item-template').data('url')
+    $('body').addClass('page-loading');
+
+    await sendAjaxRequest({
+        url: dataUrl,
+        data: ''
+    })
+        .done((response) => {
+            $('.board-list-container').empty();
+
+            response.boards.forEach((item, index) => {
+                const template = $('#board-item-template').html();
+                const $board = $(template);
+
+                $board.find('.board-title').text(item.title);
+                $board.attr('data-board-id', item.id);
+                if (item.id === boardId || (boardId === null && index === 0)) {
+                    $board.addClass('active');
+                }
+
+                $('.board-list-container').append($board);
+            });
+
+            if (response.boards.length > 0) {
+                $('.board-name').text(response.boards[0].title);
+                getTaskByBoardId(response.boards[0].id);
+            }
+            $('.board-name').text(response.boards[0].title)
+            $('body').removeClass('page-loading');
+            deleteBoard()
+            $('.board-item').on('click', function () {
+                $('.board-item.active').removeClass('active');
+                $(this).addClass('active');
+                getTaskByBoardId($(this).data('board-id'))
+            })
+        })
+        .fail((err) => {
+            $('body').removeClass('page-loading');
+            console.error('Lỗi khi lấy board:', err);
+        });
+}
+
 /**
  * AJax
  * Add Board
  */
-const handleAddBoar = () => {
+const handleAddBoar = async () => {
 
     $('.form-board').on('submit', async function (e) {
-        e.preventDefault(); // Ngăn reload
-
+        e.preventDefault();
         const form = $(this);
         const formData = form.serialize();
-
-        $('body').addClass('page-loading');
-
-        $.ajax({
+        await sendAjaxRequest({
             url: form.attr('action'),
-            method: 'POST',
-            data: formData,
-            success: function (response) {
-                console.log(response)
+            data: formData
+        })
+            .done((res) => {
+                getBoards(res.boardId)
+                $('#collapseBoard input').val('');
+                getTaskByBoardId(res.boardId)
+
+                var opened = document.querySelectorAll('#collapseBoard.collapse.show');
+                opened.forEach(el => {
+                    bootstrap.Collapse.getInstance(el).hide();
+                });
+            })
+            .fail((err) => {
                 $('body').removeClass('page-loading');
-                if (response.status === 'success') {
-                    swalSuccess().then(() => location.reload());
-                } else {
-                    swalError();
-                }
-            },
-            error: function () {
-                $('body').removeClass('page-loading');
-                swalError();
-            }
-        });
+                console.error('Lỗi khi lấy Add board:', err);
+            });
+
+
     })
 }
+
 /**
  * AJax
  * Delete Board
  */
 const deleteBoard = () => {
     $('.delete-board').on('click', function (e) {
-        const boardId = $(this).data('board-id')
+        e.stopPropagation();
+        const boardId = $(this).closest('.board-item').data('board-id')
         e.preventDefault()
         return Swal.fire({
             title: "Bạn Chắn Chắn Muốn Xóa?",
@@ -102,14 +165,13 @@ const deleteBoard = () => {
             confirmButtonText: "Đồng ý",
         }).then((result) => {
             if (result.isConfirmed) {
-
-                $.ajax({
+                sendAjaxRequest({
                     url: $(this).data('url'),
-                    method: 'POST',
                     data: {
-                        id: boardId
-                    },
-                    success: function (response) {
+                        board_id: boardId
+                    }
+                })
+                    .done((response) => {
                         Swal.fire({
                             icon: 'success',
                             title: response,
@@ -118,12 +180,11 @@ const deleteBoard = () => {
                         }).then(() => {
                             $(`[data-board-id="${boardId}"]`).closest('.board-item').remove();
                         });
-                    },
-                    error: function (e) {
-                        console.log(e)
-                    }
-                });
-
+                        getBoards()
+                    })
+                    .fail((err) => {
+                        console.error('Lỗi khi lấy task theo board:', err);
+                    });
             }
         });
     })
@@ -133,49 +194,54 @@ const deleteBoard = () => {
  * AJax
  * Get Task By Board Id
  */
-const getTaskByBoardId = () => {
-    $('.board-item').on('click', function () {
-        const dataUrl = $('.task-list-container').data('task-url')
-        const boardId = $(this).data('board-id')
+const getTaskByBoardId = (boardId ) => {
 
-        $('.board-item.active').removeClass('active')
-        $(this).addClass('active')
-        $('body').addClass('page-loading')
-        $.ajax({
-            url: dataUrl,
-            method: 'POST',
-            data: {
-                board_id: boardId
-            },
-            success: function (response) {
+    boardId = $('.board-item.active').data('board-id');
 
-                $('.board-name').text(response.selected_board.title)
-                $('.task-list-container').empty();
-
-                if (Array.isArray(response.task_list) && response.task_list.length > 0) {
-                    response.task_list.forEach(item => {
-                        const taskHtml = `<div class="task-list-item">${item.title}</div>`;
-                        $('.task-list-container').append(taskHtml);
-                    });
-                } else {
-                    $('.task-list-container').empty();
-                }
-                $('body').removeClass('page-loading')
-
-            },
-            error: function (e) {
-                console.log(e)
-                $('body').removeClass('page-loading')
-
-            }
-        });
+    const dataUrl = $('.task-list-container').data('task-url');
+    sendAjaxRequest({
+        url: dataUrl,
+        data: {
+            board_id: boardId
+        }
     })
-}
+        .done((response) => {
+            $('.board-name').text(response.selected_board.title);
+            $('.task-list-container').empty();
 
-const addTaskList = ()=>{
-    $('.btn-add-task-list').on('click',function (){
+            if (Array.isArray(response.task_list) && response.task_list.length > 0) {
+
+                response.task_list.forEach(item => {
+                    const template = $('#task-list-template').html();
+                    const $task = $(template);
+
+                    $task.attr('data-task-id', item.id);
+                    $task.attr('data-board-id', item.boardId);
+                    $task.find('.task-title').text(item.title);
+                    $task.find('.dropdown-menu').attr('aria-labelledby', `dropdownTask${item.id}`);
+                    $task.find('.dropdown-toggle').attr('id', `dropdownTask${item.id}`);
+
+
+                    $('.task-list-container').append($task);
+
+                });
+            }
+            removeTaskList()
+        })
+        .fail((err) => {
+            console.error('Lỗi khi lấy task theo board:', err);
+        });
+};
+
+/*
+* Ajax
+* Add Task List
+* */
+const addTaskList = () => {
+    $('.btn-add-task-list').on('click', function (e) {
         const dataUrl = $(this).data('url')
         const boardId = $('.board-item.active').data('board-id')
+        e.preventDefault();
 
         $('body').addClass('page-loading')
         $.ajax({
@@ -186,18 +252,12 @@ const addTaskList = ()=>{
                 title: $('.title-add-list-task').val(),
             },
             success: function (response) {
-                response.task_list.forEach(item =>{
-                    const taskHtml = `
-                            <div 
-                              class="task-list-item" 
-                              data-task-id="${item.id}" 
-                              data-board-id="${item.boardId}" 
-                              ${item.title}
-                            </div>
-                        `;
-                    $('.task-list-container').append(taskHtml);
-
-                })
+                $('.title-add-list-task').val('');
+                var opened = document.querySelectorAll('#collapseAddTaskList.collapse.show');
+                opened.forEach(el => {
+                    bootstrap.Collapse.getInstance(el).hide();
+                });
+                getTaskByBoardId($('.board-item.active').data('board-id'))
                 $('body').removeClass('page-loading')
             },
             error: function (e) {
@@ -208,7 +268,50 @@ const addTaskList = ()=>{
         });
     })
 }
+
+/*
+* Ajax
+* Remove Task List
+* */
+
+const removeTaskList = () => {
+    $('.remove-task-list-item').on('click', function (e) {
+        const taskListId = $(this).closest('.task-list-item').data('task-id')
+        e.preventDefault()
+        return Swal.fire({
+            title: "Bạn Chắn Chắn Muốn Xóa?",
+            showCancelButton: true,
+            confirmButtonText: "Đồng ý",
+        }).then((result) => {
+            if (result.isConfirmed) {
+                sendAjaxRequest({
+                    url: $('#task-list-template').data('url'),
+                    data: {task_list_id: taskListId}
+                })
+                    .done((response) => {
+                        Swal.fire({
+                            icon: 'success',
+                            title: response,
+                            showConfirmButton: false,
+                            timer: 1500
+                        }).then(() => {
+                            $(`[data-task-id="${taskListId}"]`).closest('.task-list-item').remove();
+                        });
+                    })
+            }
+        });
+
+
+    })
+}
+
+const init = () => {
+    getBoards()
+}
 $(document).ready(function () {
+    init()
+    addTaskList()
+    handleAddBoar()
 
     $('.button-item').on('click', function () {
         $('.button-item.active').removeClass('active');
@@ -223,8 +326,6 @@ $(document).ready(function () {
         }
     });
 
-    togglePassword('.active-password');
-    togglePassword('.active-confirm');
     document.querySelectorAll(".task-list").forEach(list => {
         new Sortable(list, {
             group: "shared",
@@ -238,8 +339,6 @@ $(document).ready(function () {
 
     })
 
-    handleAddBoar()
-    deleteBoard()
-    getTaskByBoardId()
-    addTaskList()
+    togglePassword('.active-password');
+    togglePassword('.active-confirm');
 })
