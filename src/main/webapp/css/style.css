@@ -106,7 +106,6 @@ body{
      position: relative;
      width: 100%;
      height: 400px; /* hoặc chiều cao phù hợp */
-     overflow: hidden;
  }
 
 .form-container {
