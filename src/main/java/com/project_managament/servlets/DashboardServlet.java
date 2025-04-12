@@ -46,7 +46,6 @@ public class DashboardServlet extends HttpServlet {
         if (!AuthUtil.isAuthenticated(request)) {
             RequestDispatcher dispatcher = request.getRequestDispatcher("/views/index.jsp");
             dispatcher.forward(request, response);
-
         }
 
         RequestDispatcher dispatcher = request.getRequestDispatcher("/views/dashboard.jsp");

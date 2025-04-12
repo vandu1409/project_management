@@ -241,7 +241,6 @@
              data-board-id="">
             <div class="font-bold text-xl p-3 text-white flex justify-between items-center">
                 <span class="task-title ">
-                    ${item.title}
                 </span>
                 <div class="dropdown btn-option" >
                      <span class="dropdown-toggle" id="dropdownTask1"  data-bs-toggle="dropdown">
@@ -278,11 +277,25 @@
 
 <%--                </div>--%>
 <%--            </div>--%>
-            <div class="px-3 pb-3">
-                <button class="mt-4 w-full bg-blue-500 text-white py-2 rounded-md font-semibold add-task"
-                        data-list="done">+ Add Task
-                </button>
+            <div class="collapse !visible collapse-task-child"
+                 >
+                <form action="${pageContext.request.contextPath}/dashboard/task-child"
+                      class="form-board card card-body !bg-black p-2 m-0" method="POST">
+                    <input required class="border-2 rounded mb-3 p-2 text-dark" type="text" name="title"
+                           placeholder="Tao Card">
+                </form>
 
+            </div>
+            <div class="child-task-gr">
+            <div class="add-child-task hidden  justify-center gap-3 items-center ms-2">
+                <button type="submit" class="btn btn-primary text-center px-4 rounded-3 create-task">Tạo</button>
+                <button  class="btn text-center cancel text-white hover:bg-[#6a6a6a80]">X</button>
+            </div>
+            <a class="block px-3 pb-3 btn-task-child" data-bs-toggle="collapse"  >
+                <button class="mt-4 w-full bg-blue-500 text-white py-2 rounded-md font-semibold task-child add-task"
+                        data-list="done" data-task-id="">+ Add Task
+                </button>
+            </a>
             </div>
         </div>
     </template>
