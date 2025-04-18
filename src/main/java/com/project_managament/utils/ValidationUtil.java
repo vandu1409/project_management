@@ -59,9 +59,9 @@ public class ValidationUtil {
 
     public static void validatePassword(String password) {
         requireNonEmpty(password, "Mật khẩu không được để trống!");
-        if (!PASSWORD_PATTERN.matcher(password).matches()) {
-            throw new IllegalArgumentException("Mật khẩu phải có ít nhất 8 ký tự, gồm chữ và số!");
-        }
+//        if (!PASSWORD_PATTERN.matcher(password).matches()) {
+//            throw new IllegalArgumentException("Mật khẩu phải có ít nhất 8 ký tự, gồm chữ và số!");
+//        }
     }
 
     public static void validateUser(String email, String password) {

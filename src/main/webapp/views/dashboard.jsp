@@ -19,13 +19,51 @@
         </span>
 
         <ul class="dropdown-menu dropdown-menu-dark">
-            <li><a class="dropdown-item" href="../New%20folder/profile.html">Profile</a></li>
+            <li><button id="openModalBtn" class="dropdown-item w-full text-left">Profile</button></li>
             <li><a class="dropdown-item" href="${pageContext.request.contextPath}/logout">Logout</a></li>
+
+
         </ul>
+        <!-- Modal Profile -->
+        <div id="profileModal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50 hidden">
+            <div class="bg-white p-8 rounded-2xl w-full max-w-4xl min-h-[400px] shadow-2xl relative">
+
+                <!-- Đóng modal -->
+                <button id="closeModalBtn" class="absolute top-2 right-2 text-gray-600 hover:text-black">✕</button>
+
+                <h2 class="text-2xl font-bold mb-4 text-center">Cập nhật hồ sơ</h2>
+                <!-- Avatar preview wrapper (ẩn khi không có avatar) -->
+                <div id="avatarPreviewWrapper" class="flex justify-center mb-4">
+                    <img id="avatarPreview" src="" alt="Avatar preview" class="w-24 h-24 rounded-full object-cover hidden" />
+                </div>
+
+                <!-- Form cập nhật profile -->
+                <form id="profileForm" enctype="multipart/form-data">
+                    <div class="mb-4">
+                        <label for="fullnameInput" class="block text-sm font-medium text-gray-700">Fullname</label>
+                        <input type="text" id="fullnameInput" name="fullname" class="text-black font-bold mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" />
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="phoneInput" class="block text-sm font-medium text-gray-700">Phone</label>
+                        <input type="text" id="phoneInput" name="phone" class="text-black font-bold mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" />
+                    </div>
+
+                    <!-- Avatar input -->
+                    <div class="mb-4">
+                        <label for="avatarInput" class="block text-sm font-medium text-gray-700">Avatar</label>
+                        <input type="file" id="avatarInput" name="avatar" class="mt-1 block w-full text-sm text-gray-500 file:py-2 file:px-4 file:border file:rounded-md file:border-gray-300 file:hover:border-gray-400 file:bg-gray-50" />
+                    </div>
+
+                    <button type="submit" class="w-full inline-flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">Update</button>
+                </form>
+
+            </div>
+        </div>
     </div>
 </header>
 
-<section class="bg-gray-900   flex text-gray-900 overflow-auto " style="height: calc(100% - 56px);">
+<section class="bg-gray-900 flex text-gray-900 overflow-auto " style="height: calc(100% - 56px);">
     <!-- Sidebar -->
     <aside class="z-1 bg-gray-900  w-48 p-3 border-r border-dotted border-gray-600 sticky left-0">
         <div class="flex justify-between gap-3 items-center mb-3 ">
@@ -70,12 +108,46 @@
 
     <!-- Main Content -->
     <main class=" grow flex-col main-section relative z-0 ">
-        <!-- Header -->
-        <header class="px-4 py-3 flex justify-between items-center  bg-gray-700 z-0">
+        <header class="px-4 py-3 flex justify-between items-center bg-gray-700 relative z-10">
+            <h1 class="text-2xl font-semibold text-white board-name">Tên Board</h1>
 
-            <h1 class="text-2xl font-semibold text-white board-name"> </h1>
+            <div class="flex items-center space-x-4">
+                <!-- Avatars + Dropdown -->
+                <div class="flex items-center relative">
+                    <div id="avatar-group-list" class="flex -space-x-2 cursor-pointer">
+                        <!-- Avatars will be rendered dynamically here -->
+                    </div>
 
+                    <!-- Dropdown thành viên -->
+                    <div id="member-dropdown" class="absolute top-10 right-0 w-90 bg-white shadow-lg rounded-md border hidden z-50">
+                        <div class="p-3 border-b font-semibold">Danh sách thành viên</div>
+                        <div id="member-list" class="max-h-64 overflow-y-auto p-3 space-y-3 text-sm">
+                            <!-- Render qua JS -->
+                        </div>
+                    </div>
+                </div>
+
+
+                <!-- Nút chia sẻ -->
+                <button id="share-btn" class="text-white bg-blue-500 hover:bg-blue-600 px-4 py-2 rounded">
+                    Chia sẻ
+                </button>
+            </div>
+
+            <!-- Modal chia sẻ -->
+            <div id="share-modal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50 hidden">
+                <div class="bg-white rounded-lg shadow-lg p-6 w-[90%] max-w-md relative">
+                    <h2 class="text-xl font-semibold mb-4">Chia sẻ Board</h2>
+                    <input type="email" placeholder="Nhập email người được mời" class="w-full border rounded px-3 py-2 mb-4" />
+                    <button class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 w-full">Gửi lời mời</button>
+                    <button id="close-share-modal" class="absolute top-2 right-2 text-gray-500 hover:text-black text-xl">&times;</button>
+                </div>
+            </div>
         </header>
+
+
+
+
 
         <!--  Task List -->
 
@@ -233,7 +305,6 @@
         </div>
     </template>
 
-
     <!----Templte Task---->
 
     <template id="task-list-template" data-url="${pageContext.request.contextPath}/dashboard/remove_task_list">
@@ -257,28 +328,28 @@
                 </div>
 
             </div>
-<%--            <div class="task-list space-y-4 p-2 " id="">--%>
-<%--                <div class="task  p-2 rounded-lg bg-[#22272B] border-solid cursor-pointer flex gap-2 border-2 border-transparent hover:border-white"--%>
-<%--                     data-bs-target="#exampleModal" data-bs-toggle="modal">--%>
-<%--                    <div>--%>
-<%--                        <div class="text-white text-sm ">--%>
-<%--                            <div class="bg-success text-xs fw-medium px-2 rounded w-fit">Xong roi nha</div>--%>
-<%--                        </div>--%>
-<%--                        <h3 class="font-medium  text-white my-2  ">Thiết kế UI mới</h3>--%>
-<%--                        <div class=" flex gap-1 text-white">--%>
-<%--                            <svg width="20px" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512">--%>
-<%--                                <path fill="white"--%>
-<%--                                      d="M88.2 309.1c9.8-18.3 6.8-40.8-7.5-55.8C59.4 230.9 48 204 48 176c0-63.5 63.8-128 160-128s160 64.5 160 128s-63.8 128-160 128c-13.1 0-25.8-1.3-37.8-3.6c-10.4-2-21.2-.6-30.7 4.2c-4.1 2.1-8.3 4.1-12.6 6c-16 7.2-32.9 13.5-49.9 18c2.8-4.6 5.4-9.1 7.9-13.6c1.1-1.9 2.2-3.9 3.2-5.9zM208 352c114.9 0 208-78.8 208-176S322.9 0 208 0S0 78.8 0 176c0 41.8 17.2 80.1 45.9 110.3c-.9 1.7-1.9 3.5-2.8 5.1c-10.3 18.4-22.3 36.5-36.6 52.1c-6.6 7-8.3 17.2-4.6 25.9C5.8 378.3 14.4 384 24 384c43 0 86.5-13.3 122.7-29.7c4.8-2.2 9.6-4.5 14.2-6.8c15.1 3 30.9 4.5 47.1 4.5zM432 480c16.2 0 31.9-1.6 47.1-4.5c4.6 2.3 9.4 4.6 14.2 6.8C529.5 498.7 573 512 616 512c9.6 0 18.2-5.7 22-14.5c3.8-8.8 2-19-4.6-25.9c-14.2-15.6-26.2-33.7-36.6-52.1c-.9-1.7-1.9-3.4-2.8-5.1C622.8 384.1 640 345.8 640 304c0-94.4-87.9-171.5-198.2-175.8c4.1 15.2 6.2 31.2 6.2 47.8l0 .6c87.2 6.7 144 67.5 144 127.4c0 28-11.4 54.9-32.7 77.2c-14.3 15-17.3 37.6-7.5 55.8c1.1 2 2.2 4 3.2 5.9c2.5 4.5 5.2 9 7.9 13.6c-17-4.5-33.9-10.7-49.9-18c-4.3-1.9-8.5-3.9-12.6-6c-9.5-4.8-20.3-6.2-30.7-4.2c-12.1 2.4-24.8 3.6-37.8 3.6c-61.7 0-110-26.5-136.8-62.3c-16 5.4-32.8 9.4-50 11.8C279 439.8 350 480 432 480z"/>--%>
-<%--                            </svg>--%>
-<%--                            <span class="text-sm">2</span>--%>
-<%--                        </div>--%>
+            <%--            <div class="task-list space-y-4 p-2 " id="">--%>
+            <%--                <div class="task  p-2 rounded-lg bg-[#22272B] border-solid cursor-pointer flex gap-2 border-2 border-transparent hover:border-white"--%>
+            <%--                     data-bs-target="#exampleModal" data-bs-toggle="modal">--%>
+            <%--                    <div>--%>
+            <%--                        <div class="text-white text-sm ">--%>
+            <%--                            <div class="bg-success text-xs fw-medium px-2 rounded w-fit">Xong roi nha</div>--%>
+            <%--                        </div>--%>
+            <%--                        <h3 class="font-medium  text-white my-2  ">Thiết kế UI mới</h3>--%>
+            <%--                        <div class=" flex gap-1 text-white">--%>
+            <%--                            <svg width="20px" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512">--%>
+            <%--                                <path fill="white"--%>
+            <%--                                      d="M88.2 309.1c9.8-18.3 6.8-40.8-7.5-55.8C59.4 230.9 48 204 48 176c0-63.5 63.8-128 160-128s160 64.5 160 128s-63.8 128-160 128c-13.1 0-25.8-1.3-37.8-3.6c-10.4-2-21.2-.6-30.7 4.2c-4.1 2.1-8.3 4.1-12.6 6c-16 7.2-32.9 13.5-49.9 18c2.8-4.6 5.4-9.1 7.9-13.6c1.1-1.9 2.2-3.9 3.2-5.9zM208 352c114.9 0 208-78.8 208-176S322.9 0 208 0S0 78.8 0 176c0 41.8 17.2 80.1 45.9 110.3c-.9 1.7-1.9 3.5-2.8 5.1c-10.3 18.4-22.3 36.5-36.6 52.1c-6.6 7-8.3 17.2-4.6 25.9C5.8 378.3 14.4 384 24 384c43 0 86.5-13.3 122.7-29.7c4.8-2.2 9.6-4.5 14.2-6.8c15.1 3 30.9 4.5 47.1 4.5zM432 480c16.2 0 31.9-1.6 47.1-4.5c4.6 2.3 9.4 4.6 14.2 6.8C529.5 498.7 573 512 616 512c9.6 0 18.2-5.7 22-14.5c3.8-8.8 2-19-4.6-25.9c-14.2-15.6-26.2-33.7-36.6-52.1c-.9-1.7-1.9-3.4-2.8-5.1C622.8 384.1 640 345.8 640 304c0-94.4-87.9-171.5-198.2-175.8c4.1 15.2 6.2 31.2 6.2 47.8l0 .6c87.2 6.7 144 67.5 144 127.4c0 28-11.4 54.9-32.7 77.2c-14.3 15-17.3 37.6-7.5 55.8c1.1 2 2.2 4 3.2 5.9c2.5 4.5 5.2 9 7.9 13.6c-17-4.5-33.9-10.7-49.9-18c-4.3-1.9-8.5-3.9-12.6-6c-9.5-4.8-20.3-6.2-30.7-4.2c-12.1 2.4-24.8 3.6-37.8 3.6c-61.7 0-110-26.5-136.8-62.3c-16 5.4-32.8 9.4-50 11.8C279 439.8 350 480 432 480z"/>--%>
+            <%--                            </svg>--%>
+            <%--                            <span class="text-sm">2</span>--%>
+            <%--                        </div>--%>
 
-<%--                    </div>--%>
+            <%--                    </div>--%>
 
-<%--                </div>--%>
-<%--            </div>--%>
+            <%--                </div>--%>
+            <%--            </div>--%>
             <div class="collapse !visible collapse-task-child"
-                 >
+            >
                 <form action="${pageContext.request.contextPath}/dashboard/task-child"
                       class="form-board card card-body !bg-black p-2 m-0" method="POST">
                     <input required class="border-2 rounded mb-3 p-2 text-dark" type="text" name="title"
@@ -287,21 +358,27 @@
 
             </div>
             <div class="child-task-gr">
-            <div class="add-child-task hidden  justify-center gap-3 items-center ms-2">
-                <button type="submit" class="btn btn-primary text-center px-4 rounded-3 create-task">Tạo</button>
-                <button  class="btn text-center cancel text-white hover:bg-[#6a6a6a80]">X</button>
-            </div>
-            <a class="block px-3 pb-3 btn-task-child" data-bs-toggle="collapse"  >
-                <button class="mt-4 w-full bg-blue-500 text-white py-2 rounded-md font-semibold task-child add-task"
-                        data-list="done" data-task-id="">+ Add Task
-                </button>
-            </a>
+                <div class="add-child-task hidden  justify-center gap-3 items-center ms-2">
+                    <button type="submit" class="btn btn-primary text-center px-4 rounded-3 create-task">Tạo</button>
+                    <button  class="btn text-center cancel text-white hover:bg-[#6a6a6a80]">X</button>
+                </div>
+                <a class="block px-3 pb-3 btn-task-child" data-bs-toggle="collapse"  >
+                    <button class="mt-4 w-full bg-blue-500 text-white py-2 rounded-md font-semibold task-child add-task"
+                            data-list="done" data-task-id="">+ Add Task
+                    </button>
+                </a>
             </div>
         </div>
     </template>
 
-    <script src="${pageContext.request.contextPath}/js/index.js"></script>
+    <script src="${pageContext.request.contextPath}/js/2.js"></script>
+
 
 </section>
+<script>
+    window.currentUserEmail = "<c:out value='${sessionScope.loggedInUser.email}' />";
+    window.contextPath = '<%= request.getContextPath() %>';
+    // console.log(window.currentUserEmail)
+</script>
 
 </html>

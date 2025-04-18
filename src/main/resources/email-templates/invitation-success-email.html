@@ -1,10 +1,71 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thông Báo Phê Duyệt</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f7f7f7;
+            margin: 0;
+            padding: 0;
+        }
+        .email-container {
+            width: 100%;
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        .email-header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .email-header h1 {
+            color: #4CAF50;
+        }
+        .email-body {
+            margin-bottom: 20px;
+        }
+        .email-footer {
+            text-align: center;
+            font-size: 12px;
+            color: #777;
+        }
+        .btn {
+            display: inline-block;
+            background-color: #4CAF50;
+            color: #fff;
+            padding: 12px 24px;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+        .btn:hover {
+            background-color: #45a049;
+        }
+    </style>
 </head>
 <body>
-<h1>Bạn đã được phê duyệt</h1>
+
+<div class="email-container">
+    <div class="email-header">
+        <h1>Chúc mừng! Bạn đã được phê duyệt</h1>
+    </div>
+    <div class="email-body">
+        <p>Chào <strong>{{email}}</strong>,</p>
+        <p>Chúng tôi vui mừng thông báo rằng bạn đã được phê duyệt vào <strong>{{boardName}}</strong> thành công!</p>
+        <p>Bây giờ bạn có thể tham gia và bắt đầu công việc của mình. Chúng tôi rất mong được làm việc cùng bạn trong dự án này.</p>
+<!--        <a href="{{projectLink}}" class="btn">Truy Cập Dự Án</a>-->
+    </div>
+    <div class="email-footer">
+        <p>Trân trọng,<br>Team của chúng tôi.</p>
+    </div>
+</div>
+
 </body>
 </html>

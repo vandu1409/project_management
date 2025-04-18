@@ -115,6 +115,8 @@ const getBoards = async (boardId = null) => {
             $('body').removeClass('page-loading');
             console.error('Lỗi khi lấy board:', err);
         });
+
+    // fetchMembersFromAPI()
 }
 
 /**
@@ -234,6 +236,8 @@ const getTaskByBoardId = (boardId) => {
         .fail((err) => {
             console.error('Lỗi khi lấy task theo board:', err);
         });
+
+    fetchMembersFromAPI()
 };
 
 /*
@@ -356,13 +360,84 @@ $(document).ready(function () {
             animation: 150
         });
     });
-
-    $('.form-send').on('submit', function () {
-        $('.submit-login').find('span').addClass('loader')
-        $('.submit-login').prop('disabled', true)
-
-    })
-
+    
     togglePassword('.active-password');
     togglePassword('.active-confirm');
 })
+//
+// const getTasks = async (taskListId) => {
+//     const dataUrl = "http://localhost:8080/project_managament_war/task/details?taskListId=" + taskListId;
+//
+//     $('body').addClass('page-loading');
+//
+//     await sendAjaxRequest({
+//         url: dataUrl,
+//         method: 'GET',
+//
+//     })
+//         .done((response) => {
+//             $('.task-list-container').empty();  // Xóa các task hiện có
+//
+//             response.tasks.forEach((task) => {
+//                 const template = $('#task-list-template').html();  // Lấy template HTML của task
+//                 const $task = $(template);
+//
+//                 $task.find('.task-title').text(task.title);  // Gán title của task
+//                 $task.attr('data-task-id', task.id);  // Gán ID task
+//
+//                 $('.task-list-container').append($task);  // Thêm task vào container
+//             });
+//
+//             if (response.tasks.length > 0) {
+//                 $('.task-name').text(response.tasks[0].title);  // Hiển thị tên của task đầu tiên
+//             }
+//
+//             $('body').removeClass('page-loading');
+//             deleteTask();  // Thêm chức năng xóa task
+//
+//             $('.task-item').on('click', function () {
+//                 $('.task-item.active').removeClass('active');
+//                 $(this).addClass('active');
+//             });
+//         })
+//         .fail((err) => {
+//             $('body').removeClass('page-loading');
+//             console.error('Lỗi khi lấy task:', err);
+//         });
+// }
+
+//
+// const addTask = async (taskListId, taskTitle) => {
+//     const dataUrl = $('#create-child-task-form').attr('action');  // URL để gửi yêu cầu tạo task mới
+//     $('body').addClass('page-loading');
+//
+//     await sendAjaxRequest({
+//         url: dataUrl,
+//         method: 'POST',  // Phương thức POST để tạo task mới
+//         data: { taskListId, title: taskTitle }  // Dữ liệu task cần thêm
+//     })
+//         .done((response) => {
+//             // Nếu tạo task thành công, gọi lại hàm getTasks để reload danh sách task
+//             getTasks(taskListId);
+//             $('body').removeClass('page-loading');
+//         })
+//         .fail((err) => {
+//             $('body').removeClass('page-loading');
+//             console.error('Lỗi khi tạo task:', err);
+//         });
+// }
+//
+// $('.create-task-btn').on('click', function () {
+//     const taskListId = $(this).closest('.task-list-item').data('task-id')
+//     const taskTitle = $('#task-title').val();
+//
+//     if (taskTitle.trim() !== '') {
+//
+//         addTask(boardId, taskTitle);
+//
+//         $('#task-title').val('');
+//     } else {
+//         alert('Vui lòng nhập tiêu đề task');
+//     }
+// });
+

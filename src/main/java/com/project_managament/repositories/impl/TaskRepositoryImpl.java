@@ -7,7 +7,6 @@ import com.project_managament.utils.DBConnection;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 public class TaskRepositoryImpl implements TaskRepository {
     private static final String INSERT_SQL = "INSERT INTO tasks (title, description, status, created_at, updated_at, deleted_at, expired_at, task_list_id, position) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
@@ -16,6 +15,33 @@ public class TaskRepositoryImpl implements TaskRepository {
     private static final String SELECT_BY_ID_SQL = "SELECT * FROM tasks WHERE id=?";
     private static final String SELECT_ALL_SQL = "SELECT * FROM tasks";
     private static final String MOVE_SQL = "UPDATE tasks SET task_list_id=?, position=?, updated_at=? WHERE id=?";
+    private static final String FIND_BY_TASK_LIST_ID_SQL =
+            "SELECT t.* FROM task_list tl " +
+                    "INNER JOIN task t ON tl.id = t.task_list_id " +
+                    "WHERE tl.id = ? " +
+                    "ORDER BY t.position ASC";
+
+    @Override
+    public List<Task> findByTaskListId(int taskListId) {
+        List<Task> tasks = new ArrayList<>();
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(FIND_BY_TASK_LIST_ID_SQL)) {
+
+            ps.setInt(1, taskListId);
+            ResultSet rs = ps.executeQuery();
+
+            while (rs.next()) {
+                Task task = mapToTask(rs);
+                tasks.add(task);
+            }
+
+        } catch (SQLException e) {
+            throw new RuntimeException("Error retrieving tasks by task list id", e);
+        }
+
+        return tasks;
+    }
+
 
 
 

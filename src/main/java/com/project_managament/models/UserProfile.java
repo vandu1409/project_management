@@ -11,4 +11,5 @@ public class UserProfile {
     private int userId;
     private String fullname;
     private String phone;
+    private String avatar;
 }

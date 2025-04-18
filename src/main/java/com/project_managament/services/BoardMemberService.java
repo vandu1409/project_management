@@ -7,6 +7,8 @@ import java.util.List;
 import java.util.Optional;
 
 public interface BoardMemberService {
+    List<BoardMember> getBoardMembersByBoardId(int boardId);
+
     boolean inviteMember(String email, int boardId);
 
     boolean approveMember(int boardMemberId, int ownerId);

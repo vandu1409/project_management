@@ -4,10 +4,12 @@ import com.project_managament.services.EmailService;
 import jakarta.mail.*;
 import jakarta.mail.internet.InternetAddress;
 import jakarta.mail.internet.MimeMessage;
+import jakarta.mail.internet.MimeUtility;
 
 import javax.naming.Context;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
+import java.io.UnsupportedEncodingException;
 import java.util.Properties;
 
 public class EmailServiceImpl implements EmailService {
@@ -48,13 +50,16 @@ public class EmailServiceImpl implements EmailService {
             Message message = new MimeMessage(session);
             message.setFrom(new InternetAddress(username));
             message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(to));
-            message.setSubject(subject);
+            message.setSubject(MimeUtility.encodeText(subject, "UTF-8", "B"));
+
             message.setContent(htmlContent, "text/html; charset=utf-8");
 
             Transport.send(message);
         } catch (MessagingException e) {
             e.printStackTrace();
             throw new RuntimeException("Lỗi khi gửi email");
+        } catch (UnsupportedEncodingException e) {
+            throw new RuntimeException(e);
         }
     }
 }
