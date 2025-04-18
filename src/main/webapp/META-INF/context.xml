@@ -16,5 +16,5 @@
     <Environment name="mail.host" value="smtp.gmail.com" type="java.lang.String"/>
     <Environment name="mail.port" value="587" type="java.lang.String"/>
     <Environment name="mail.username" value="vandu18082003nv@gmail.com" type="java.lang.String"/>
-    <Environment name="mail.password" value="blzy xzvr vvss emzr" type="java.lang.String"/>
+    <Environment name="mail.password" value="" type="java.lang.String"/>
 </Context>
