@@ -17,6 +17,12 @@ public class TaskServiceImpl implements TaskService {
         this.taskRepository = taskRepository;
     }
 
+
+    @Override
+    public List<Task> findByTaskListId(int taskListId) {
+        return taskRepository.findByTaskListId(taskListId);
+    }
+
     @Override
     public int addTask(Task task) {
         validateTask(task);

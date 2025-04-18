@@ -18,11 +18,31 @@ public class BoardMemberRepositoryImpl implements BoardMemberRepository {
     private static final String SELECT_BY_BOARD_AND_USER_SQL =
             "SELECT * FROM board_members WHERE board_id = ? AND user_id = ? LIMIT 1";
     private static final String UPDATE_STATUS_SQL = "UPDATE board_members SET status = ? WHERE board_id = ? AND user_id = ?";
+    private static final String SELECT_BOARD_MEMBERS_BY_BOARD_ID = "SELECT bm.* FROM board_members bm WHERE bm.board_id = ?";
+
+
+    @Override
+    public List<BoardMember> getBoardMembersByBoardId(int boardId) {
+        List<BoardMember> boardMembers = new ArrayList<>();
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(SELECT_BOARD_MEMBERS_BY_BOARD_ID)) {
+            stmt.setInt(1, boardId);
+            ResultSet rs = stmt.executeQuery();
+
+            while (rs.next()) {
+                BoardMember boardMember = mapToBoardMember(rs);
+                boardMembers.add(boardMember);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return boardMembers;
+    }
 
     @Override
     public int insert(BoardMember boardMember) {
         try (Connection conn = DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(INSERT_SQL)) {
+             PreparedStatement ps = conn.prepareStatement(INSERT_SQL,Statement.RETURN_GENERATED_KEYS)) {
             ps.setInt(1, boardMember.getBoardId());
             ps.setInt(2, boardMember.getUserId());
             ps.setTimestamp(3, boardMember.getJoinedAt() != null ? Timestamp.valueOf(boardMember.getJoinedAt()) : null);

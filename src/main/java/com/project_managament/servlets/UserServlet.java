@@ -15,6 +15,8 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 
 import java.io.IOException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.Optional;
@@ -32,8 +34,13 @@ public class UserServlet extends HttpServlet {
     }
 
     @Override
-    protected void doGet(HttpServletRequest req, HttpServletResponse res) throws IOException {
-        handleRequest(req, res);
+    protected void doGet(HttpServletRequest req, HttpServletResponse res) throws IOException, ServletException {
+        String uri = req.getRequestURI();
+            System.out.println(">> [GET] Called doGet() for URI: " + req.getRequestURI());
+        if (uri.contains("register")) {
+            req.getRequestDispatcher("/views/register.jsp").forward(req,res);
+        }else if (uri.contains("logout")) handleLogout(req, res);
+
     }
 
     private void handleRequest(HttpServletRequest req, HttpServletResponse res) throws IOException {
@@ -41,7 +48,7 @@ public class UserServlet extends HttpServlet {
             String uri = req.getRequestURI();
             if (uri.contains("register")) handleRegister(req, res);
             else if (uri.contains("login")) handleLogin(req, res);
-            else if (uri.contains("logout")) handleLogout(req, res);
+
             else throw new IllegalArgumentException("Invalid request");
         } catch (IllegalArgumentException e) {
             LOGGER.log(Level.WARNING, "Client error: " + e.getMessage(), e);
@@ -53,9 +60,10 @@ public class UserServlet extends HttpServlet {
     }
 
     private void handleRegister(HttpServletRequest req, HttpServletResponse res) throws IOException {
-        Map<String, String> jsonData = JsonUtils.parseJsonRequest(req);
-        String email = jsonData.get("email");
-        String password = jsonData.get("password");
+
+//        Map<String, String> jsonData = JsonUtils.parseJsonRequest(req);
+        String email = req.getParameter("email");
+        String password = req.getParameter("password");
 
         if (email == null || email.isBlank() || password == null || password.isBlank()) {
             throw new IllegalArgumentException("Missing email or password");
@@ -65,9 +73,10 @@ public class UserServlet extends HttpServlet {
         boolean success = userService.registerUser(newUser);
 
         if (success) {
-            JsonUtils.sendJsonResponse(res, HttpServletResponse.SC_OK, "Registration successful! Check your email.");
-        } else {
-            JsonUtils.sendJsonResponse(res, HttpServletResponse.SC_BAD_REQUEST, "Registration failed! Email may already be in use.");
+            String successMsg = URLEncoder.encode("Đăng ký thành công! Vui lòng kiểm tra email!", StandardCharsets.UTF_8);
+            res.sendRedirect(req.getContextPath() + "?message=" + successMsg);;
+        } else {String errorMsg = URLEncoder.encode("Đăng ký thất bại!", StandardCharsets.UTF_8);
+            res.sendRedirect(req.getContextPath() + "/register?errorMessage=" + errorMsg);res.sendRedirect(req.getContextPath()+"/register?errorMessage= Đăng ký thất bại!");
         }
     }
 
@@ -100,11 +109,8 @@ public class UserServlet extends HttpServlet {
     }
 
     private void handleLogout(HttpServletRequest req, HttpServletResponse res) throws IOException {
-        HttpSession session = req.getSession(false);
-        if (session != null) {
-            session.invalidate();
-        }
+        System.err.println("đã vào");
         AuthUtil.logout(req);
-        res.sendRedirect(req.getContextPath() + "/login");
+        res.sendRedirect(req.getContextPath() + "/");
     }
 }

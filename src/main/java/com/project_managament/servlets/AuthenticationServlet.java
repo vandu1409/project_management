@@ -10,6 +10,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 
 @WebServlet({"/verify-account"})
 public class AuthenticationServlet extends HttpServlet {
@@ -20,10 +22,25 @@ public class AuthenticationServlet extends HttpServlet {
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         String uri = req.getRequestURI();
 
-        if(uri.contains("verify-account")){
+        if (uri.contains("verify-account")) {
             String token = req.getParameter("token");
-            userService.verifyAccount(token);
-            req.getRequestDispatcher("/views/indexindex.jsp").forward(req, resp);
+
+            if (token == null || token.isBlank()) {
+                String error = URLEncoder.encode("Thiếu token xác thực.", StandardCharsets.UTF_8);
+                resp.sendRedirect(req.getContextPath() + "/?errorMessage=" + error);
+                return;
+            }
+
+            try {
+                userService.verifyAccount(token);
+                String message = URLEncoder.encode("Xác thực tài khoản thành công!", StandardCharsets.UTF_8);
+                resp.sendRedirect(req.getContextPath() + "/?message=" + message);
+            } catch (RuntimeException ex) {
+                String rawMessage = ex.getMessage() != null ? ex.getMessage() : "Đã xảy ra lỗi không xác định.";
+                String error = URLEncoder.encode(rawMessage, StandardCharsets.UTF_8);
+                resp.sendRedirect(req.getContextPath() + "/?errorMessage=" + error);
+            }
         }
     }
+
 }

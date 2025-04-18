@@ -5,6 +5,7 @@ import com.project_managament.repositories.impl.TaskRepositoryImpl;
 import com.project_managament.services.TaskService;
 import com.project_managament.services.impl.TaskServiceImpl;
 import com.project_managament.utils.JsonUtils;
+import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
@@ -12,15 +13,28 @@ import jakarta.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Map;
 
-@WebServlet({"/tasks/add", "/tasks/update", "/tasks/delete", "/tasks/move"})
+@WebServlet({"/tasks/*"})
 public class TaskServlet extends HttpServlet {
     private final TaskService taskService = new TaskServiceImpl(new TaskRepositoryImpl());
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse res) throws IOException {
         handleRequest(req, res);
+    }
+
+    @Override
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        try {
+            String uri = req.getRequestURI();
+            if (uri.contains("details")) handleDetails(req,resp);
+        }catch (IllegalArgumentException e) {
+            JsonUtils.sendJsonResponse(resp, HttpServletResponse.SC_BAD_REQUEST, e.getMessage());
+        } catch (Exception e) {
+            JsonUtils.sendJsonResponse(resp, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Internal server error");
+        }
     }
 
     private void handleRequest(HttpServletRequest req, HttpServletResponse res) throws IOException {
@@ -84,5 +98,11 @@ public class TaskServlet extends HttpServlet {
 
         boolean success = taskService.updateTask(task);
         JsonUtils.sendJsonResponse(res, success ? 200 : 400, success ? "Task moved successfully!" : "Failed to move task!");
+    }
+
+    private void handleDetails(HttpServletRequest request,HttpServletResponse response) throws IOException {
+        int id = Integer.parseInt(request.getParameter("taskListId"));
+        List<Task> tasks = taskService.findByTaskListId(id);
+        JsonUtils.sendJsonResponse(response,  200, tasks);
     }
 }

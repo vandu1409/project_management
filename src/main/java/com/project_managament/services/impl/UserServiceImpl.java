@@ -43,7 +43,11 @@ public class UserServiceImpl implements UserService {
    /*     ValidationUtil.validateEmail(email);
         ValidationUtil.validatePassword(password);*/
         return Optional.ofNullable(userRepository.findByEmail(email))
-                .filter(user -> PasswordUtil.checkPassword(password, user.getPassword()));
+                .filter(user ->
+                        PasswordUtil.checkPassword(password, user.getPassword()) &&
+                                Boolean.TRUE.equals(user.getIsActive())
+                );
+
     }
 
     @Override

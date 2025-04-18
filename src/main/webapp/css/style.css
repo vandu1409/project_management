@@ -148,3 +148,34 @@ body{
 .dropdown-toggle::after {
     display: none !important;
 }
+
+#member-dropdown {
+    flex-direction: column;
+    width: 400px;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+#member-list .font-medium {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex-shrink: 0; /* Đảm bảo tên không bị thu nhỏ */
+    max-width: 150px; /* Giới hạn chiều rộng của tên */
+}
+
+#member-list .text-xs {
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+    max-width: 200px; /* Giới hạn chiều rộng của email */
+}
+#member-list .flex {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    gap: 0.5rem;
+}
+
+
