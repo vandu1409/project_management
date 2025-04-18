@@ -4,6 +4,7 @@ import lombok.*;
 
 import java.time.LocalDateTime;
 import java.util.Date;
+import java.util.List;
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -20,5 +21,6 @@ public class Task {
     private LocalDateTime deletedAt;
     private LocalDateTime expiredAt;
     private LocalDateTime updatedAt;
-    private Long taskListId;
+    private int taskListId;
+
 }

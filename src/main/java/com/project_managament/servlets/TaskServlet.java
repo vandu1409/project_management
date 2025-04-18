@@ -47,7 +47,7 @@ public class TaskServlet extends HttpServlet {
                 .description(data.get("description"))
                 .status(data.get("status"))
                 .position(Integer.parseInt(data.get("position")))
-                .taskListId(Long.parseLong(data.get("taskListId")))
+                .taskListId(Integer.parseInt( data.get("taskListId")))
                 .createdAt(LocalDateTime.now())
                 .build();
 
@@ -79,7 +79,7 @@ public class TaskServlet extends HttpServlet {
                 .orElseThrow(() -> new IllegalArgumentException("Task not found"));
 
         task.setPosition(Integer.parseInt(data.get("position")));
-        task.setTaskListId(Long.parseLong(data.get("taskListId")));
+        task.setTaskListId(Integer.parseInt( data.get("taskListId")));
         task.setUpdatedAt(LocalDateTime.now());
 
         boolean success = taskService.updateTask(task);

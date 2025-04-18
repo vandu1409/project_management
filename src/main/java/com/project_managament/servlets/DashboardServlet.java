@@ -35,6 +35,7 @@ import java.util.*;
 public class DashboardServlet extends HttpServlet {
     private final BoardService boardService = new BoardServiceImpl(new BoardRepositoryImpl());
     private final TaskListService taskListService = new TaskListServiceImpl(new TaskListRepositoryImpl());
+    private final TaskService taskChildService = new TaskServiceImpl(new TaskRepositoryImpl());
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse res) throws IOException {
@@ -95,7 +96,13 @@ public class DashboardServlet extends HttpServlet {
             } else if (path.equals("/remove_task_list")) {
                 removeTaskList(req, res);
 
-            } else {
+            } else if (path.equals("/get_task_child")) {
+                getTaskChild(req, res);
+
+            } else if (path.equals("/create_task_child")) {
+                createTaskChild(req, res);
+
+            }  else {
                 throw new IllegalArgumentException("Invalid request");
 
             }
@@ -147,7 +154,6 @@ public class DashboardServlet extends HttpServlet {
 
     private void handleDelete(HttpServletRequest req, HttpServletResponse res, User user) throws IOException {
         try {
-            System.out.println(req.getParameter("board_id"));
 
             int id = Integer.parseInt(req.getParameter("board_id"));
             Board board = boardService.getBoard(id).orElseThrow(() -> new IllegalArgumentException("Không tìm thấy "));
@@ -156,7 +162,6 @@ public class DashboardServlet extends HttpServlet {
             }
             boolean success = boardService.deleteBoard(id);
             JsonUtils.sendJsonResponse(res, success ? 200 : 400, success ? "Xóa Thành Công!" : "Có Lỗi Khi Xóa, vui lòng thử lại");
-
         } catch (IllegalArgumentException e) {
             JsonUtils.sendJsonResponse(res, 400, e.getMessage());
         } catch (Exception e) {
@@ -170,6 +175,7 @@ public class DashboardServlet extends HttpServlet {
         List<Board> boards = boardService.getBoardsByUser(user.getId());
         res.setContentType("application/json");
         res.setCharacterEncoding("UTF-8");
+
         Map<String, Object> responseData = new HashMap<>();
         responseData.put("boards", boards);
         JsonUtils.sendJsonResponse(res, 200, responseData);
@@ -177,23 +183,30 @@ public class DashboardServlet extends HttpServlet {
 
     private void getTasksByBoardId(HttpServletRequest req, HttpServletResponse res, User user, Board board) throws IOException, ServletException {
         try {
-            int boardId = Integer.parseInt(req.getParameter("board_id"));
-
             if (board != null) {
+                int boardId = Integer.parseInt(req.getParameter("board_id"));
+                System.out.println(boardId);
+
                 List<TaskList> tasks = taskListService.getTasksByBoardId(boardId);
+
                 res.setContentType("application/json");
                 res.setCharacterEncoding("UTF-8");
+
                 Map<String, Object> responseData = new HashMap<>();
                 responseData.put("task_list", tasks);
+
                 responseData.put("selected_board", board);
+
                 JsonUtils.sendJsonResponse(res, 200, responseData);
+            } else {
+                JsonUtils.sendJsonResponse(res, 400, "Board không hợp lệ hoặc không tồn tại.");
             }
         } catch (Exception e) {
             e.printStackTrace();
-            JsonUtils.sendJsonResponse(res, 500, "Lỗi khi ghi JSON: " + e.getMessage());
-
+            JsonUtils.sendJsonResponse(res, 500, "Lỗi khi xử lý yêu cầu: " + e.getMessage());
         }
     }
+
 
     private void addTaskList(HttpServletRequest req, HttpServletResponse res) throws IOException {
         String title = req.getParameter("title");
@@ -216,12 +229,62 @@ public class DashboardServlet extends HttpServlet {
     private void removeTaskList(HttpServletRequest req, HttpServletResponse res) throws IOException {
 
         int taskListId = Integer.parseInt(req.getParameter("task_list_id"));
-
         taskListService.getTaskListById(taskListId).orElseThrow(() -> new IllegalArgumentException("Không tìm thấy "));
-
         boolean success = taskListService.deleteTaskList(taskListId);
         // Set JSON response
         JsonUtils.sendJsonResponse(res, success ? 200 : 400, success ? "Xóa Thành Công!" : "Có Lỗi Khi Xóa, vui lòng thử lại");
+
+    }
+
+    private void createTaskChild(HttpServletRequest req, HttpServletResponse res) throws IOException {
+        try{
+            String title = req.getParameter("title");
+            int taskListId = Integer.parseInt(req.getParameter("task_list_id"));
+            String description = req.getParameter("description");
+
+            // To Do Hard code
+            String taskStatus = String.valueOf('0');
+            int taskPosition = 1;
+            Task task = Task.builder()
+                    .title(title)
+                    .description(description)
+                    .status(taskStatus)
+                    .position(taskPosition)
+                    .taskListId(taskListId)
+                    .createdAt(LocalDateTime.now())
+                    .build();
+            boolean success = (taskChildService.addTask(task) != -1);
+            // Set JSON response
+            res.setContentType("application/json");
+            res.setCharacterEncoding("UTF-8");
+            PrintWriter out = res.getWriter();
+            out.write("{\"status\":\"" + (success ? "success" : "fail") + "\"}");
+            out.flush();
+        }catch (Exception e){
+            System.out.println("Task Child:" + e.getMessage());
+        }
+
+    }
+
+    private void getTaskChild(HttpServletRequest req, HttpServletResponse res) throws IOException {
+
+            int taskListId = Integer.parseInt(req.getParameter("task_list_id"));
+
+        try{
+
+            // To Do Hard code
+            List<Task> tasks = taskChildService.findByTaskListId(taskListId);
+
+            // Set JSON response
+
+            res.setContentType("application/json");
+            res.setCharacterEncoding("UTF-8");
+            Map<String, Object> responseData = new HashMap<>();
+            responseData.put("task_childs", tasks);
+            JsonUtils.sendJsonResponse(res, 200, responseData);
+        }catch (Exception e){
+            System.out.println("Task Child:" + e.getMessage());
+        }
 
     }
 

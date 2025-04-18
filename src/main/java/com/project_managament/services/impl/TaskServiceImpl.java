@@ -1,6 +1,8 @@
 package com.project_managament.services.impl;
 
 import com.project_managament.models.Task;
+import com.project_managament.models.TaskList;
+import com.project_managament.repositories.TaskListRepository;
 import com.project_managament.repositories.TaskRepository;
 import com.project_managament.services.TaskService;
 
@@ -9,6 +11,7 @@ import java.util.Optional;
 
 public class TaskServiceImpl implements TaskService {
     private final TaskRepository taskRepository;
+    private TaskListRepository taskListRepository;
 
     public TaskServiceImpl(TaskRepository taskRepository) {
         this.taskRepository = taskRepository;
@@ -40,6 +43,11 @@ public class TaskServiceImpl implements TaskService {
     }
 
     @Override
+    public List<Task> findByTaskListId(int id) {
+        return List.of();
+    }
+
+    @Override
     public List<Task> getAllTasks() {
         return taskRepository.getAll();
     }
@@ -50,9 +58,7 @@ public class TaskServiceImpl implements TaskService {
         if (task.getTitle() == null || task.getTitle().trim().isEmpty()) {
             throw new IllegalArgumentException("Task title cannot be empty");
         }
-        if (task.getTaskListId() == null || task.getTaskListId() <= 0) {
-            throw new IllegalArgumentException("Invalid task list ID");
-        }
+
         if (task.getPosition() < 0) {
             throw new IllegalArgumentException("Task position cannot be negative");
         }

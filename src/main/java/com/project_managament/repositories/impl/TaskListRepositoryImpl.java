@@ -3,6 +3,7 @@ package com.project_managament.repositories.impl;
 import com.project_managament.models.Task;
 import com.project_managament.models.TaskList;
 import com.project_managament.repositories.TaskListRepository;
+import com.project_managament.repositories.TaskRepository;
 import com.project_managament.utils.DBConnection;
 
 import java.sql.*;
@@ -19,6 +20,7 @@ public class TaskListRepositoryImpl implements TaskListRepository {
      * Task By Board Id
      */
     private  static final String TASK_BY_BOARD_ID_SQL = "SELECT * FROM task_lists WHERE board_id=?";
+    private TaskRepository taskRepository;
 
     @Override
     public int insert(TaskList taskList) {
@@ -102,34 +104,31 @@ public class TaskListRepositoryImpl implements TaskListRepository {
     }
 
     private TaskList mapToTaskList(ResultSet rs) throws SQLException {
-        return new TaskList(
-                rs.getInt("id"),
-                rs.getString("title"),
-                rs.getTimestamp("created_at") != null ? rs.getTimestamp("created_at").toLocalDateTime() : null,
-                rs.getTimestamp("deleted_at") != null ? rs.getTimestamp("deleted_at").toLocalDateTime() : null,
-                rs.getInt("board_id")
-        );
-
+        TaskList taskList = new TaskList();
+        taskList.setId(rs.getInt("id"));
+        taskList.setTitle(rs.getString("title"));
+        taskList.setCreatedAt(rs.getTimestamp("created_at") != null ? rs.getTimestamp("created_at").toLocalDateTime() : null);
+        taskList.setDeletedAt(rs.getTimestamp("deleted_at") != null ? rs.getTimestamp("deleted_at").toLocalDateTime() : null);
+        taskList.setBoardId(rs.getInt("board_id"));
+        return taskList;
     }
+    private final TaskRepository taskListRepository = new TaskRepositoryImpl();
+
     @Override
     public List<TaskList> getTasksByBoardId(int boardId) {
-        List<TaskList> tasks = new ArrayList<>();
-        try (Connection conn = DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(TASK_BY_BOARD_ID_SQL)) {
+        if (boardId <= 0)
+            throw new IllegalArgumentException("Invalid task BoardId");
 
-            System.out.println(boardId);
-            ps.setInt(1, boardId);
-            ResultSet rs = ps.executeQuery();
+        // 1. Lấy danh sách TaskList từ repository
+        List<TaskList> taskLists = taskListRepository.findByTaskListId(boardId);
 
-            while (rs.next()) {
-                TaskList task = mapToTaskList(rs);
-                tasks.add(task);
-            }
-
-        } catch (SQLException e) {
-            throw new RuntimeException("Error fetching task by ID", e);
+        // 2. Gắn danh sách Task vào từng TaskList
+        for (TaskList taskList : taskLists) {
+            List<Task> tasks = taskRepository.findByTaskListId(taskList.getId());
+            taskList.setTasks(tasks);  // <- Gán vào field `tasks`
         }
 
-        return tasks;
+        return taskLists;
     }
+
 }

@@ -133,10 +133,6 @@ body{
     transform: translateX(0%);
 }
 
-.register-form {
-    transform: translateX(100%);
-}
-
 .form-container.active {
     opacity: 1;
     pointer-events: all;

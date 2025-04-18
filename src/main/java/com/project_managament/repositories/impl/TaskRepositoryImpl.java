@@ -7,7 +7,6 @@ import com.project_managament.utils.DBConnection;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 public class TaskRepositoryImpl implements TaskRepository {
     private static final String INSERT_SQL = "INSERT INTO tasks (title, description, status, created_at, updated_at, deleted_at, expired_at, task_list_id, position) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
@@ -110,11 +109,11 @@ public class TaskRepositoryImpl implements TaskRepository {
         ps.setString(1, task.getTitle());
         ps.setString(2, task.getDescription());
         ps.setString(3, task.getStatus());
-        ps.setTimestamp(4, Timestamp.valueOf(task.getCreatedAt()));
-        ps.setTimestamp(5, Timestamp.valueOf(task.getUpdatedAt()));
+        ps.setTimestamp(4, task.getCreatedAt() != null ? Timestamp.valueOf(task.getCreatedAt()) : null);
+        ps.setTimestamp(5, task.getUpdatedAt() != null ? Timestamp.valueOf(task.getUpdatedAt()) : null);
         ps.setTimestamp(6, task.getDeletedAt() != null ? Timestamp.valueOf(task.getDeletedAt()) : null);
         ps.setTimestamp(7, task.getExpiredAt() != null ? Timestamp.valueOf(task.getExpiredAt()) : null);
-        ps.setLong(8, task.getTaskListId());
+        ps.setInt(8, task.getTaskListId());
     }
 
     private Task mapToTask(ResultSet rs) throws SQLException {
@@ -128,10 +127,36 @@ public class TaskRepositoryImpl implements TaskRepository {
                 rs.getTimestamp("updated_at") != null ? rs.getTimestamp("updated_at").toLocalDateTime() : null,
                 rs.getTimestamp("deleted_at") != null ? rs.getTimestamp("deleted_at").toLocalDateTime() : null,
                 rs.getTimestamp("expired_at") != null ? rs.getTimestamp("expired_at").toLocalDateTime() : null,
-                rs.getLong("task_list_id")
+                rs.getInt("task_list_id")
         );
     }
 
 
+    private static final String FIND_BY_TASK_LIST_ID_SQL =
+            "SELECT t.* FROM task_list tl " +
+                    "INNER JOIN task t ON tl.id = t.task_list_id " +
+                    "WHERE tl.id = ? " +
+                    "ORDER BY t.position ASC";
+
+    @Override
+    public List<Task> findByTaskListId(int taskListId) {
+        List<Task> tasks = new ArrayList<>();
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(FIND_BY_TASK_LIST_ID_SQL)) {
+
+            ps.setInt(1, taskListId);
+            ResultSet rs = ps.executeQuery();
+
+            while (rs.next()) {
+                Task task = mapToTask(rs);
+                tasks.add(task);
+            }
+
+        } catch (SQLException e) {
+            throw new RuntimeException("Error retrieving tasks by task list id", e);
+        }
+
+        return tasks;
+    }
 
 }

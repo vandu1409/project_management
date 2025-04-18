@@ -3,6 +3,8 @@ package com.project_managament.services.impl;
 import com.project_managament.models.Task;
 import com.project_managament.models.TaskList;
 import com.project_managament.repositories.TaskListRepository;
+import com.project_managament.repositories.TaskRepository;
+import com.project_managament.repositories.impl.TaskRepositoryImpl;
 import com.project_managament.services.TaskListService;
 import com.project_managament.utils.ValidationUtil;
 
@@ -46,6 +48,7 @@ public class TaskListServiceImpl implements TaskListService {
         ValidationUtil.requirePositive(id, "Invalid TaskList ID");
         return Optional.ofNullable(taskListRepository.getById(id));
     }
+    private final TaskRepository taskRepository = new TaskRepositoryImpl();
 
     @Override
     public List<TaskList> getAllTaskList() {
