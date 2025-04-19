@@ -8,9 +8,9 @@
     <script src="${pageContext.request.contextPath}/js/boostrap.js"></script>
     <script src="${pageContext.request.contextPath}/js/jquery.js?v2"></script>
     <script src="${pageContext.request.contextPath}/js/sort.js"></script>
-    <script src="${pageContext.request.contextPath}/js/index.js"></script>
+    <script src="${pageContext.request.contextPath}/js/index.js?v122"></script>
     <script src="${pageContext.request.contextPath}/js/swal.js"></script>
-    <script src="${pageContext.request.contextPath}/js/board-member.js"></script>
-    <script src="${pageContext.request.contextPath}/js/profile.js?v2"></script>
+<%--    <script src="${pageContext.request.contextPath}/js/board-member.js"></script>--%>
+<%--    <script src="${pageContext.request.contextPath}/js/profile.js?v2"></script>--%>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>

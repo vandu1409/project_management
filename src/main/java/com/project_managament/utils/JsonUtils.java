@@ -1,6 +1,7 @@
 package com.project_managament.utils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -16,6 +17,8 @@ public class JsonUtils {
     static {
         objectMapper.registerModule(new JavaTimeModule());
         objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+        objectMapper.registerModule(new Jdk8Module());
+
     }
     public static <T> T parseJsonRequest(HttpServletRequest request, Class<T> clazz) throws IOException {
         BufferedReader reader = request.getReader();

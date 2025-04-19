@@ -13,4 +13,6 @@ public interface TaskListService {
     Optional<TaskList> getTaskListById(int id);
     List <TaskList> getTasksByBoardId(int BoardId);
     List<TaskList> getAllTaskList();
+
+    boolean updateTaskChild(int taskId, int taskListId);
 }

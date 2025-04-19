@@ -18,10 +18,6 @@ public class TaskServiceImpl implements TaskService {
     }
 
 
-    @Override
-    public List<Task> findByTaskListId(int taskListId) {
-        return taskRepository.findByTaskListId(taskListId);
-    }
 
     @Override
     public int addTask(Task task) {
@@ -31,7 +27,9 @@ public class TaskServiceImpl implements TaskService {
 
     @Override
     public boolean updateTask(Task task) {
-        validateTask(task);
+        if (task.getId() <= 0) {
+            throw new IllegalArgumentException("Invalid task ID");
+        }
         return taskRepository.update(task);
     }
 
@@ -58,13 +56,7 @@ public class TaskServiceImpl implements TaskService {
         return taskRepository.getAll();
     }
 
-
-
     private void validateTask(Task task) {
-        if (task.getTitle() == null || task.getTitle().trim().isEmpty()) {
-            throw new IllegalArgumentException("Task title cannot be empty");
-        }
-
         if (task.getPosition() < 0) {
             throw new IllegalArgumentException("Task position cannot be negative");
         }

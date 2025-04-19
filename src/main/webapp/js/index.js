@@ -117,7 +117,6 @@ const getBoards = async (boardId = null) => {
             console.error('Lỗi khi lấy board:', err);
         });
 
-    // fetchMembersFromAPI()
 }
 
 /**
@@ -197,10 +196,12 @@ const deleteBoard = () => {
  * AJax
  * Get Task By Board Id
  */
+
+let taskList = ''
+
 const getTaskByBoardId = (boardId) => {
 
     boardId = $('.board-item.active').data('board-id');
-    console.log(boardId)
 
     const dataUrl = $('.task-list-container').data('task-url');
     sendAjaxRequest({
@@ -210,33 +211,72 @@ const getTaskByBoardId = (boardId) => {
         }
     })
         .done((response) => {
-            console.log(response)
 
             $('.board-name').text(response.selected_board.title);
             $('.task-list-container').empty();
+            taskList = response.task_list
+            response.task_list.forEach(item => {
+                const template = $('#task-list-template').html();
+                const $task = $(template);
+                $task.attr('data-task-id', item.id);
+                $task.find('.child-task-gr').attr('data-task-list-id', item.id);
+                $task.attr('data-board-id', item.boardId);
+                $task.find('.task-title').text(item.title);
+                $task.find('.dropdown-menu').attr('aria-labelledby', `dropdownTask${item.id}`);
+                $task.find('.dropdown-toggle').attr('id', `dropdownTask${item.id}`);
+                $task.find('.collapse-task-child').attr('id', `collapseTaskChild-${item.id}`);
+                $task.find('.btn-task-child').attr('href', `collapseTaskChild-${item.id}`);
+                $task.find('.task-child-container').attr('data-task-list-id', item.id);
 
-            if (Array.isArray(response.task_list) && response.task_list.length > 0) {
 
-                response.task_list.forEach(item => {
-                    const template = $('#task-list-template').html();
-                    const $task = $(template);
+                $('.task-list-container').append($task);
 
-                    $task.attr('data-task-id', item.id);
-                    $task.find('child-task-gr').attr('data-task-list-id', item.id);
-                    $task.attr('data-board-id', item.boardId);
-                    $task.find('.task-title').text(item.title);
-                    $task.find('.dropdown-menu').attr('aria-labelledby', `dropdownTask${item.id}`);
-                    $task.find('.dropdown-toggle').attr('id', `dropdownTask${item.id}`);
-                    $task.find('.collapse-task-child').attr('id', `collapseTaskChild-${item.id}`)
-                    $task.find('.btn-task-child').attr('href', `collapseTaskChild-${item.id}`)
+                const $childContainer = $task.find('.task-child-container');
 
-                    $('.task-list-container').append($task);
-
+                item.tasks.forEach(taskChild => {
+                    const childTemplate = $('#task-list-child-template').html();
+                    const $taskChild = $(childTemplate);
+                    $taskChild.find('.task-child-title').text(taskChild.title);
+                    $taskChild.find('.task-child-group').attr('data-task-child-id', taskChild.id);
+                    $childContainer.append($taskChild);
                 });
-                removeTaskList();
-                addTask()
-                createTaskChild()
-            }
+            });
+            getTaskChildModal()
+            removeTaskList();
+            addTask()
+            createTaskChild()
+            createDescription()
+            const dataChildUrl = $('.task-child-container').data('url')
+            document.querySelectorAll(".task-child-container").forEach(list => {
+                new Sortable(list, {
+                    group: "shared",
+                    animation: 150,
+                    draggable: ".task-child-list",
+
+                    onAdd: function (evt) {
+                        const taskEl = evt.item;
+                        const newListEl = evt.to;
+                        $('body').addClass('page-loading')
+                        const taskId = $(taskEl).find('.task-child-group').attr('data-task-child-id');
+                        const newTaskListId = newListEl.getAttribute('data-task-list-id');
+                        $.ajax({
+                            url: dataChildUrl,
+                            method: 'POST',
+                            data: {
+                                task_child_id: taskId,
+                                tas_list_id: newTaskListId,
+                            },
+                            success: function (response) {
+                                $('body').removeClass('page-loading')
+                            },
+                            error: function (e) {
+                                console.log(e)
+                                $('body').removeClass('page-loading')
+                            }
+                        });
+                    }
+                });
+            });
 
 
         })
@@ -244,8 +284,86 @@ const getTaskByBoardId = (boardId) => {
             console.error('Lỗi khi lấy task theo board:', err);
         });
 
-    fetchMembersFromAPI()
 };
+
+const createDescription = () => {
+    const dataUrl = $('.btn-button-group').data('url')
+    $('.task-area-description').on('focus', function () {
+        $('.btn-button-group').addClass('!flex');
+    });
+
+    $('.btn-cancel').on('click', function () {
+        $('.btn-button-group').removeClass('!flex');
+    })
+    $('.btn-save').on('click', function () {
+        $('body').addClass('page-loading')
+
+        $.ajax({
+            url: dataUrl,
+            method: 'POST',
+            data: {
+                task_id: $('#taskChildModal').data('task-id'),
+                description: $('.task-area-description').val(),
+            },
+            success: function (response) {
+                    $('.btn-button-group').removeClass('!flex');
+                    $('.description-title').text($('.task-area-description').val())
+                    $('.task-area-description').addClass('hidden').removeClass('block')
+                    $('.btn-edit').addClass('block').removeClass('hidden')
+                    $('.description-title').addClass('block').removeClass('hidden')
+                const dataUrlChdil = $('#taskChildModal').data('url');
+                const taskId = parseInt($('#taskChildModal').attr('data-task-id'), 10);
+
+
+                sendAjaxRequest({
+                    url: dataUrlChdil,
+                    data: {
+                        task_id: taskId
+                    }
+                })
+                    .done((response) => {
+                        $('.modal-dropdown').empty();
+                        $('.task-area-description').val('');
+                        $('.description-title').text('')
+                        $('.btn-edit').removeClass('block');
+
+                        $('.task-modal-title').text(response.task_detail.title)
+                        if (response.task_detail.description){
+                            $('.description-title').text(response.task_detail.description)
+                            $('.description-title').addClass('block').removeClass('hidden')
+                            $('.task-area-description').addClass('hidden')
+                            $('.btn-edit').addClass('block').removeClass('hidden')
+
+                        }else{
+                            $('.description-title').addClass('hidden')
+                            $('.btn-edit').addClass('hidden')
+                            $('.task-area-description').addClass('block').removeClass('hidden')
+                        }
+                        taskList.forEach(item => {
+                            if (response.task_detail.taskListId === item.id) {
+                                $('.dropdown-active').text(item.title);
+                            }
+                            const template = `<li><a class="dropdown-item" href="#" data-task_id = ${item.id}>${item.title}</a></li>`;
+                            $('.modal-dropdown').append(template)
+                        })
+                        $('.btn-edit').off('click').on('click',function (){
+                            $(this).addClass('hidden')
+                            $('.description-title').removeClass('block').addClass('hidden')
+                            $('.btn-button-group').addClass('!flex');
+                            $('.task-area-description').addClass('block').removeClass('hidden')
+                            $('.task-area-description').val(response.task_detail.description)
+                        })
+                    })
+                $('body').removeClass('page-loading')
+            },
+            error: function (e) {
+                console.log(e)
+                $('body').removeClass('page-loading')
+            }
+        });
+    })
+}
+
 
 /*
 * Ajax
@@ -337,53 +455,9 @@ const addTask = () => {
 
 }
 
-const getTaskChild = (taskListId = '') =>{
 
-    taskListId = $('.board-item.active').data('board-id');
-
-    const dataUrl = $('.task-list-container').data('task-url');
-    sendAjaxRequest({
-        url: dataUrl,
-        data: {
-            board_id: boardId
-        }
-    })
-        .done((response) => {
-            $('.board-name').text(response.selected_board.title);
-            $('.task-list-container').empty();
-
-            if (Array.isArray(response.task_list) && response.task_list.length > 0) {
-
-                response.task_list.forEach(item => {
-                    const template = $('#task-list-template').html();
-                    const $task = $(template);
-
-                    $task.attr('data-task-id', item.id);
-                    $task.find('child-task-gr').attr('data-task-list-id', item.id);
-                    $task.attr('data-board-id', item.boardId);
-                    $task.find('.task-title').text(item.title);
-                    $task.find('.dropdown-menu').attr('aria-labelledby', `dropdownTask${item.id}`);
-                    $task.find('.dropdown-toggle').attr('id', `dropdownTask${item.id}`);
-                    $task.find('.collapse-task-child').attr('id', `collapseTaskChild-${item.id}`)
-                    $task.find('.btn-task-child').attr('href', `collapseTaskChild-${item.id}`)
-
-                    $('.task-list-container').append($task);
-
-                });
-                removeTaskList();
-                addTask()
-                createTaskChild()
-            }
-
-
-        })
-        .fail((err) => {
-            console.error('Lỗi khi lấy task theo board:', err);
-        });
-}
-
-const createTaskChild = () =>{
-    $('.create-task').on('click',function (e){
+const createTaskChild = () => {
+    $('.create-task').on('click', function (e) {
         const dataUrl = $(this).data('url')
         const taskListId = $(this).closest('.task-list-item').data('task-id')
         e.preventDefault();
@@ -400,6 +474,8 @@ const createTaskChild = () =>{
                 console.log(response)
                 $('.task-child-val').val('');
                 $('body').removeClass('page-loading')
+                getTaskByBoardId()
+
             },
             error: function (e) {
                 console.log(e)
@@ -408,6 +484,67 @@ const createTaskChild = () =>{
             }
         });
     })
+}
+
+const getTaskChildModal = () => {
+    $('.task-child-group').on('click', function () {
+        $('.btn-button-group').removeClass('!flex');
+        $('.task-description').val('');
+
+        $('body').addClass('page-loading')
+        const taskId = $(this).data('task-child-id')
+        $('#taskChildModal').attr('data-task-id',taskId)
+
+        $('#taskChildModal').modal('show');
+
+            const dataUrl = $('#taskChildModal').data('url');
+            sendAjaxRequest({
+                url: dataUrl,
+                data: {
+                    task_id:taskId
+                }
+            })
+                .done((response) => {
+                    $('.modal-dropdown').empty();
+                    $('.task-area-description').val('');
+                    $('.description-title').text('')
+                    $('.btn-edit').removeClass('block');
+
+                    $('.task-modal-title').text(response.task_detail.title)
+                    if (response.task_detail.description){
+                        $('.description-title').text(response.task_detail.description)
+                        $('.description-title').addClass('block').removeClass('hidden')
+                        $('.task-area-description').addClass('hidden')
+                        $('.btn-edit').addClass('block').removeClass('hidden')
+
+                    }else{
+                        $('.description-title').addClass('hidden')
+                        $('.btn-edit').addClass('hidden')
+                        $('.task-area-description').addClass('block').removeClass('hidden')
+                    }
+                    taskList.forEach(item => {
+                        if (response.task_detail.taskListId === item.id) {
+                            $('.dropdown-active').text(item.title);
+                        }
+                        const template = `<li><a class="dropdown-item" href="#" data-task_id = ${item.id}>${item.title}</a></li>`;
+                        $('.modal-dropdown').append(template)
+                    })
+                    $('.btn-edit').off('click').on('click',function (){
+                        $(this).addClass('hidden')
+                        $('.description-title').removeClass('block').addClass('hidden')
+                        $('.btn-button-group').addClass('!flex');
+                        $('.task-area-description').addClass('block').removeClass('hidden')
+                        $('.task-area-description').val(response.task_detail.description)
+                    })
+                })
+        $('#taskChildModal').on('hidden.bs.modal', function () {
+            $('.task-area-description').val('').addClass('hidden');
+            $('.description-title').text('').addClass('block');
+            $('.btn-edit').addClass('hidden');
+        });
+    });
+
+
 }
 $(document).ready(function () {
     getBoards()
@@ -426,13 +563,7 @@ $(document).ready(function () {
         }
     });
 
-    document.querySelectorAll(".task-list").forEach(list => {
-        new Sortable(list, {
-            group: "shared",
-            animation: 150
-        });
-    });
-    
+
     togglePassword('.active-password');
     togglePassword('.active-confirm');
 })

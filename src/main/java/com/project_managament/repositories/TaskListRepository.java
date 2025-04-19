@@ -8,5 +8,6 @@ import java.util.List;
 
 public interface TaskListRepository extends BaseRepository<TaskList> {
     List<TaskList> getTasksByBoardId(int BoardId);
+     Boolean updateTaskChild(int taskId,int newTaskListId);
 
 }

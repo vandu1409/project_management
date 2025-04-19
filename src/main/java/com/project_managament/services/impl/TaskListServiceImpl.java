@@ -14,6 +14,7 @@ import java.util.Optional;
 public class TaskListServiceImpl implements TaskListService {
 
     private final TaskListRepository taskListRepository;
+    private List<Task> tasks;
 
     public TaskListServiceImpl(TaskListRepository taskListRepository) {
         this.taskListRepository = taskListRepository;
@@ -53,6 +54,21 @@ public class TaskListServiceImpl implements TaskListService {
     @Override
     public List<TaskList> getAllTaskList() {
         return taskListRepository.getAll();
+    }
+
+    public void setTasks(List<Task> tasks) {
+        this.tasks = tasks;
+    }
+
+    public List<Task> getTasks() {
+        return tasks;
+    }
+
+    public boolean updateTaskChild(int taskId, int taskListId) {
+        ValidationUtil.requirePositive(taskId, "Invalid Task ID");
+        ValidationUtil.requirePositive(taskListId, "Invalid TaskList ID");
+
+        return taskListRepository.updateTaskChild(taskId, taskListId);
     }
 
     @Override

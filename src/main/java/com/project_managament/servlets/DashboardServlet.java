@@ -1,6 +1,5 @@
 package com.project_managament.servlets;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.project_managament.models.Board;
 import com.project_managament.models.Task;
 import com.project_managament.models.TaskList;
@@ -102,6 +101,15 @@ public class DashboardServlet extends HttpServlet {
             } else if (path.equals("/create_task_child")) {
                 createTaskChild(req, res);
 
+            } else if (path.equals("/get_detail_task")) {
+                getDetailTask(req, res);
+
+            }  else if (path.equals("/update_task")) {
+                updateTask(req, res);
+
+            }else if (path.equals("/update_detail")) {
+                updateDetail(req, res);
+
             }  else {
                 throw new IllegalArgumentException("Invalid request");
 
@@ -185,15 +193,14 @@ public class DashboardServlet extends HttpServlet {
         try {
             if (board != null) {
                 int boardId = Integer.parseInt(req.getParameter("board_id"));
-                System.out.println(boardId);
 
-                List<TaskList> tasks = taskListService.getTasksByBoardId(boardId);
+                List<TaskList> taskLists = taskListService.getTasksByBoardId(boardId);
 
                 res.setContentType("application/json");
                 res.setCharacterEncoding("UTF-8");
 
                 Map<String, Object> responseData = new HashMap<>();
-                responseData.put("task_list", tasks);
+                responseData.put("task_list", taskLists);
 
                 responseData.put("selected_board", board);
 
@@ -287,5 +294,88 @@ public class DashboardServlet extends HttpServlet {
         }
 
     }
+
+    private void getDetailTask(HttpServletRequest req, HttpServletResponse res) throws IOException {
+
+            int taskId = Integer.parseInt(req.getParameter("task_id"));
+
+        try{
+
+            Optional<Task> task = taskChildService.getTaskById(taskId);
+
+            Map<String, Object> responseData = new HashMap<>();
+            responseData.put("task_detail", task);
+
+            JsonUtils.sendJsonResponse(res, 200, responseData);
+        }catch (Exception e){
+            System.out.println("Task Child:" + e.getMessage());
+        }
+
+    }
+
+    private void updateTask(HttpServletRequest req, HttpServletResponse res) throws IOException {
+        int taskId = Integer.parseInt(req.getParameter("task_child_id"));
+        int taskListId = Integer.parseInt(req.getParameter("tas_list_id"));
+        boolean success = taskListService.updateTaskChild(taskId, taskListId);
+
+        res.setContentType("application/json");
+        res.setCharacterEncoding("UTF-8");
+
+
+        if (success) {
+            res.setStatus(HttpServletResponse.SC_OK);
+            res.getWriter().write("{\"message\": \"Cập nhật thành công\"}");
+        } else {
+            res.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            res.getWriter().write("{\"message\": \"Cập nhật thất bại\"}");
+        }
+    }
+    private void updateDetail(HttpServletRequest req, HttpServletResponse res) throws IOException {
+        try {
+            int taskId = Integer.parseInt(req.getParameter("task_id"));
+            String description = req.getParameter("description");
+
+            // Lấy task cũ từ DB
+            Optional<Task> oldTask = taskChildService.getTaskById(taskId);
+            if (oldTask.isEmpty()) {
+                res.setStatus(HttpServletResponse.SC_NOT_FOUND);
+                res.setContentType("application/json");
+                res.setCharacterEncoding("UTF-8");
+                res.getWriter().write("{\"message\": \"Không tìm thấy task\"}");
+                return;
+            }
+
+            // Gán dữ liệu mới
+            oldTask.get().setDescription(description);
+            oldTask.get().setUpdatedAt(LocalDateTime.now());
+
+            boolean success = taskChildService.updateTask(oldTask.orElse(null));
+
+            res.setContentType("application/json");
+            res.setCharacterEncoding("UTF-8");
+
+            if (success) {
+                res.setStatus(HttpServletResponse.SC_OK);
+                res.getWriter().write("{\"message\": \"Cập nhật thành công\"}");
+            } else {
+                res.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+                res.getWriter().write("{\"message\": \"Cập nhật thất bại\"}");
+            }
+
+        } catch (IllegalArgumentException e) {
+            res.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            res.setContentType("application/json");
+            res.setCharacterEncoding("UTF-8");
+            res.getWriter().write("{\"message\": \"" + e.getMessage() + "\"}");
+        } catch (Exception e) {
+            e.printStackTrace();
+
+            res.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            res.setContentType("application/json");
+            res.setCharacterEncoding("UTF-8");
+            res.getWriter().write("{\"message\": \"Đã xảy ra lỗi không xác định: " + e.getMessage() + "\"}");
+        }
+    }
+
 
 }

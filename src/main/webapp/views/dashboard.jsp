@@ -104,7 +104,7 @@
         </div>
     </main>
     <!-- Modal -->
-    <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal fade" id="taskChildModal" tabindex="-1" data-url="${pageContext.request.contextPath}/dashboard/get_detail_task" aria-labelledby="exampleModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg">
             <div class="modal-content " style="border-radius: 20px">
                 <div class="modal-body p-0 ">
@@ -113,8 +113,8 @@
                             <div class="flex-grow">
                                 <div class=" mb-4">
                                     <div class="text-xl font-bold text-white flex justify-between">
-                                        <div>
-                                            Kickoff Meeting
+                                        <div class="task-modal-title">
+
 
                                         </div>
                                         <div class="cursor-pointer hover:bg-gray-800 p-2 rounded"
@@ -131,14 +131,11 @@
                                         </div>
 
                                         <div class="dropdown">
-                                            <div class=" dropdown-toggle bg-gray-800 p-2 rounded-xl cursor-pointer fw-medium"
+                                            <div class="dropdown-active dropdown-toggle bg-gray-800 p-2 rounded-xl cursor-pointer fw-medium"
                                                  data-bs-toggle="dropdown" aria-expanded="false">
-                                                DOING
+
                                             </div>
-                                            <ul class="dropdown-menu">
-                                                <li><a class="dropdown-item" href="#">Action</a></li>
-                                                <li><a class="dropdown-item" href="#">Another action</a></li>
-                                                <li><a class="dropdown-item" href="#">Something else here</a></li>
+                                            <ul class="dropdown-menu modal-dropdown">
                                             </ul>
                                         </div>
 
@@ -157,8 +154,16 @@
                                         </svg>
                                         Description
                                     </h3>
-                                    <textarea class="w-full bg-gray-700 text-white p-2 rounded mt-1"
+                                    <div class="btn-edit bg-blue-500 p-2 rounded-md text-white hidden w-fit ms-auto" style="cursor: pointer">Edit</div>
+
+                                    <div class="description-title text-white bg-gray-800 text-white p-2 rounded mt-3 hidden"></div>
+                                    <textarea class="w-full bg-gray-700 text-white p-2 rounded mt-1 task-area-description"
                                               placeholder="Add a more detailed description..."></textarea>
+
+                                    <div class="hidden btn-button-group  gap-3 justify-content-end mt-4" data-url="${pageContext.request.contextPath}/dashboard/update_detail">
+                                        <button class="btn-save bg-blue-500 p-2 rounded-md text-white">Lưu</button>
+                                        <button class="btn-cancel bg-[#22272B] border p-2 text-white rounded-md">X</button>
+                                    </div>
                                 </div>
                                 <div class="flex justify-between items-center mb-4">
                                     <h3 class="text-gray-400 flex item-center gap-2 fw-medium">
@@ -215,8 +220,8 @@
         </div>
     </div>
 
-    <!----Templte Board---->
 
+    <!----Templte Board---->
     <template id="board-item-template" data-url="${pageContext.request.contextPath}/dashboard/get_boards">
         <div class="board-item ms-2 mt-3 p-2 justify-between flex items-center gap-2 rounded" data-board-id="">
             <div class="flex items-center gap-2">
@@ -251,33 +256,37 @@
                                       fill="currentColor"></path></svg>
                         </span>
                     <ul class="dropdown-menu" aria-labelledby="dropdownTask1">
+                        <li><a class="dropdown-item cursor-pointer edit-task-list-item" >Edit</a></li>
                         <li><a class="dropdown-item cursor-pointer remove-task-list-item" >Remove</a></li>
 
                     </ul>
                 </div>
 
             </div>
-            <!--------Template Task CHild------->
 
-            <div class="task-child-list space-y-4 p-2 " id="" data-url="${pageContext.request.contextPath}/dashboard/get_task_child">
-                <div class="task  p-2 rounded-lg bg-[#22272B] border-solid cursor-pointer flex gap-2 border-2 border-transparent hover:border-white"
-                     data-bs-target="#exampleModal" data-bs-toggle="modal">
+            <div class="task-child-container" data-url="${pageContext.request.contextPath}/dashboard/update_task"></div>
+
+            <!--------Template Task CHild------->
+            <template id="task-list-child-template">
+            <div class="task-child-list space-y-4 p-2 " id=""  data-url="${pageContext.request.contextPath}/dashboard/get_task_child">
+                <div class="task-child-group  p-2 rounded-lg bg-[#22272B] border-solid cursor-pointer flex gap-2 border-2 border-transparent hover:border-white"
+                    >
                     <div>
                         <div class="text-white text-sm ">
-                            <div class="bg-success text-xs fw-medium px-2 rounded w-fit">Xong roi nha</div>
+                            <div class="bg-success text-xs fw-medium px-2 rounded w-fit task-child-label">label</div>
                         </div>
-                        <h3 class="font-medium  text-white my-2  ">Thiết kế UI mới</h3>
+                        <h3 class="font-medium  text-white my-2 task-child-title"></h3>
                         <div class=" flex gap-1 text-white">
                             <svg width="20px" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512">
                                 <path fill="white"
                                       d="M88.2 309.1c9.8-18.3 6.8-40.8-7.5-55.8C59.4 230.9 48 204 48 176c0-63.5 63.8-128 160-128s160 64.5 160 128s-63.8 128-160 128c-13.1 0-25.8-1.3-37.8-3.6c-10.4-2-21.2-.6-30.7 4.2c-4.1 2.1-8.3 4.1-12.6 6c-16 7.2-32.9 13.5-49.9 18c2.8-4.6 5.4-9.1 7.9-13.6c1.1-1.9 2.2-3.9 3.2-5.9zM208 352c114.9 0 208-78.8 208-176S322.9 0 208 0S0 78.8 0 176c0 41.8 17.2 80.1 45.9 110.3c-.9 1.7-1.9 3.5-2.8 5.1c-10.3 18.4-22.3 36.5-36.6 52.1c-6.6 7-8.3 17.2-4.6 25.9C5.8 378.3 14.4 384 24 384c43 0 86.5-13.3 122.7-29.7c4.8-2.2 9.6-4.5 14.2-6.8c15.1 3 30.9 4.5 47.1 4.5zM432 480c16.2 0 31.9-1.6 47.1-4.5c4.6 2.3 9.4 4.6 14.2 6.8C529.5 498.7 573 512 616 512c9.6 0 18.2-5.7 22-14.5c3.8-8.8 2-19-4.6-25.9c-14.2-15.6-26.2-33.7-36.6-52.1c-.9-1.7-1.9-3.4-2.8-5.1C622.8 384.1 640 345.8 640 304c0-94.4-87.9-171.5-198.2-175.8c4.1 15.2 6.2 31.2 6.2 47.8l0 .6c87.2 6.7 144 67.5 144 127.4c0 28-11.4 54.9-32.7 77.2c-14.3 15-17.3 37.6-7.5 55.8c1.1 2 2.2 4 3.2 5.9c2.5 4.5 5.2 9 7.9 13.6c-17-4.5-33.9-10.7-49.9-18c-4.3-1.9-8.5-3.9-12.6-6c-9.5-4.8-20.3-6.2-30.7-4.2c-12.1 2.4-24.8 3.6-37.8 3.6c-61.7 0-110-26.5-136.8-62.3c-16 5.4-32.8 9.4-50 11.8C279 439.8 350 480 432 480z"/>
                             </svg>
-                            <span class="text-sm">2</span>
+                            <span class="text-sm"></span>
                         </div>
                     </div>
                 </div>
             </div>
-
+            </template>
             <!--------------->
 
             <div class="collapse !visible collapse-task-child"

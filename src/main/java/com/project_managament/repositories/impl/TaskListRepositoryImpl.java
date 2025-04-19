@@ -19,8 +19,9 @@ public class TaskListRepositoryImpl implements TaskListRepository {
     /**
      * Task By Board Id
      */
-    private  static final String TASK_BY_BOARD_ID_SQL = "SELECT * FROM task_lists WHERE board_id=?";
-    private TaskRepository taskRepository;
+    private static final String TASK_BY_BOARD_ID_SQL = "SELECT * FROM task_lists WHERE board_id=?";
+    private static final String UPDATE_TASK_LIST_ID_OF_TASK = "UPDATE tasks SET task_list_id = ? WHERE id = ?";
+    private final TaskRepository taskRepository = new TaskRepositoryImpl();
 
     @Override
     public int insert(TaskList taskList) {
@@ -102,6 +103,19 @@ public class TaskListRepositoryImpl implements TaskListRepository {
         }
         return taskLists;
     }
+    @Override
+    public Boolean updateTaskChild(int taskId,int newTaskListId) {
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(UPDATE_TASK_LIST_ID_OF_TASK)) {
+            ps.setInt(1, newTaskListId);
+            ps.setInt(2, taskId);
+            return ps.executeUpdate() > 0;
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
 
     private TaskList mapToTaskList(ResultSet rs) throws SQLException {
         TaskList taskList = new TaskList();
@@ -112,23 +126,38 @@ public class TaskListRepositoryImpl implements TaskListRepository {
         taskList.setBoardId(rs.getInt("board_id"));
         return taskList;
     }
+
     private final TaskRepository taskListRepository = new TaskRepositoryImpl();
+
 
     @Override
     public List<TaskList> getTasksByBoardId(int boardId) {
         if (boardId <= 0)
-            throw new IllegalArgumentException("Invalid task BoardId");
+            throw new IllegalArgumentException("Invalid task boardId");
 
-        // 1. Lấy danh sách TaskList từ repository
-        List<TaskList> taskLists = taskListRepository.findByTaskListId(boardId);
+        List<TaskList> taskLists = new ArrayList<>();
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(TASK_BY_BOARD_ID_SQL)) {
 
-        // 2. Gắn danh sách Task vào từng TaskList
-        for (TaskList taskList : taskLists) {
-            List<Task> tasks = taskRepository.findByTaskListId(taskList.getId());
-            taskList.setTasks(tasks);  // <- Gán vào field `tasks`
+            ps.setInt(1, boardId);
+            ResultSet rs = ps.executeQuery();
+
+            while (rs.next()) {
+                TaskList taskList = mapToTaskList(rs);
+
+                if (taskRepository != null) {
+                    List<Task> taskChildren = taskRepository.findByTaskListId(taskList.getId());
+                    taskList.setTasks(taskChildren);
+                }
+
+                taskLists.add(taskList);
+            }
+
+            return taskLists;
+
+        } catch (SQLException e) {
+            throw new RuntimeException("Error fetching task list by board ID", e);
         }
-
-        return taskLists;
     }
 
 }

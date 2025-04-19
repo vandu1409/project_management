@@ -1,6 +1,7 @@
 package com.project_managament.repositories.impl;
 
 import com.project_managament.models.Task;
+import com.project_managament.models.TaskList;
 import com.project_managament.repositories.TaskRepository;
 import com.project_managament.utils.DBConnection;
 
@@ -15,11 +16,8 @@ public class TaskRepositoryImpl implements TaskRepository {
     private static final String SELECT_BY_ID_SQL = "SELECT * FROM tasks WHERE id=?";
     private static final String SELECT_ALL_SQL = "SELECT * FROM tasks";
     private static final String MOVE_SQL = "UPDATE tasks SET task_list_id=?, position=?, updated_at=? WHERE id=?";
-    private static final String FIND_BY_TASK_LIST_ID_SQL =
-            "SELECT t.* FROM task_list tl " +
-                    "INNER JOIN task t ON tl.id = t.task_list_id " +
-                    "WHERE tl.id = ? " +
-                    "ORDER BY t.position ASC";
+    private static final String FIND_BY_TASK_LIST_ID_SQL = "SELECT * FROM tasks WHERE task_list_id=?";
+
 
     @Override
     public List<Task> findByTaskListId(int taskListId) {
@@ -41,9 +39,6 @@ public class TaskRepositoryImpl implements TaskRepository {
 
         return tasks;
     }
-
-
-
 
     @Override
     public int insert(Task task) {
@@ -69,14 +64,23 @@ public class TaskRepositoryImpl implements TaskRepository {
     public boolean update(Task task) {
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(UPDATE_SQL)) {
-            setTaskParameters(ps, task);
+
+            ps.setString(1, task.getTitle());
+            ps.setString(2, task.getDescription());
+            ps.setString(3, task.getStatus());
+            ps.setTimestamp(4, task.getUpdatedAt() != null ? Timestamp.valueOf(task.getUpdatedAt()) : null);
+            ps.setTimestamp(5, task.getDeletedAt() != null ? Timestamp.valueOf(task.getDeletedAt()) : null);
+            ps.setTimestamp(6, task.getExpiredAt() != null ? Timestamp.valueOf(task.getExpiredAt()) : null);
             ps.setInt(7, task.getPosition());
             ps.setInt(8, task.getId());
+
             return ps.executeUpdate() > 0;
         } catch (SQLException e) {
+            e.printStackTrace(); // Thêm để in lỗi thật
             throw new RuntimeException("Error updating task", e);
         }
     }
+
 
     @Override
     public boolean delete(int id) {
@@ -156,34 +160,6 @@ public class TaskRepositoryImpl implements TaskRepository {
                 rs.getTimestamp("expired_at") != null ? rs.getTimestamp("expired_at").toLocalDateTime() : null,
                 rs.getInt("task_list_id")
         );
-    }
-
-
-    private static final String FIND_BY_TASK_LIST_ID_SQL =
-            "SELECT t.* FROM task_list tl " +
-                    "INNER JOIN task t ON tl.id = t.task_list_id " +
-                    "WHERE tl.id = ? " +
-                    "ORDER BY t.position ASC";
-
-    @Override
-    public List<Task> findByTaskListId(int taskListId) {
-        List<Task> tasks = new ArrayList<>();
-        try (Connection conn = DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(FIND_BY_TASK_LIST_ID_SQL)) {
-
-            ps.setInt(1, taskListId);
-            ResultSet rs = ps.executeQuery();
-
-            while (rs.next()) {
-                Task task = mapToTask(rs);
-                tasks.add(task);
-            }
-
-        } catch (SQLException e) {
-            throw new RuntimeException("Error retrieving tasks by task list id", e);
-        }
-
-        return tasks;
     }
 
 }
